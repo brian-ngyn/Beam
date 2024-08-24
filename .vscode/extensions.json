@@ -1,0 +1,18 @@
+{
+  "recommendations": [
+    "formulahendry.auto-close-tag",
+    "formulahendry.auto-rename-tag",
+    "dsznajder.es7-react-js-snippets",
+    "dbaeumer.vscode-eslint",
+    "christian-kohler.npm-intellisense",
+    "christian-kohler.path-intellisense",
+    "esbenp.prettier-vscode",
+    "YoavBls.pretty-ts-errors",
+    "Prisma.prisma",
+    "jawandarajbir.react-vscode-extension-pack",
+    "msjsdiag.vscode-react-native",
+    "albert.TabOut",
+    "bradlc.vscode-tailwindcss",
+    "meganrogge.template-string-converter",
+  ]
+}
