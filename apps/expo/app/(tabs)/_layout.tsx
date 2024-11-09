@@ -34,7 +34,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               color={color}
-              name={focused ? "code-slash" : "code-slash-outline"}
+              name={focused ? "home" : "home-outline"}
             />
           ),
           title: "Dashboard",
@@ -46,7 +46,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               color={color}
-              name={focused ? "cube" : "cube-outline"}
+              name={focused ? "settings" : "settings-outline"}
             />
           ),
           title: "Settings",
