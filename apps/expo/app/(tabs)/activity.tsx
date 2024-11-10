@@ -1,53 +1,54 @@
-import { StyleSheet } from "react-native";
+import { RefreshControl, StyleSheet } from "react-native";
 
 import ParallaxScrollView from "../../components/ParallaxScrollView";
 import { ThemedText } from "../../components/ThemedText";
 import { ThemedView } from "../../components/ThemedView";
 import { RecordingCard } from "../../components/recordingCard/RecordingCard";
+import { trpc } from "../../utils/trpc";
+import { useUser } from "@clerk/clerk-expo";
+import { useCallback, useState } from "react";
 
 export default function HomeScreen() {
+  const { user } = useUser();
+  const utils = trpc.useUtils();
+  const allFullRecordings = trpc.recording.getAllFullRecordings.useQuery({
+    clerkIdToFetchFrom: user!.id,
+  });
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await utils.recording.getAllFullRecordings.invalidate();
+    setRefreshing(false);
+  }, [utils.recording.getAllFullRecordings]);
+
+  const refreshControl = (
+    <RefreshControl onRefresh={onRefresh} refreshing={refreshing} />
+  );
   return (
-    <ParallaxScrollView>
+    <ParallaxScrollView refreshControl={refreshControl}>
       <ThemedView>
         <ThemedText type="title">Activity</ThemedText>
       </ThemedView>
       <ThemedView style={styles.container}>
         <ThemedView style={styles.activityContainer}>
           <ThemedText type="subtitle">Today</ThemedText>
-          <RecordingCard
-            description="Description of event adfgiuhsi gfduihg dfiugbiudfh giubdfiuhg guihfdgiuhsdifughiusdfhg giubfdsiugh gidfsbiugh iubgiubqwh gugbfi"
-            title="Event 1"
-            type="today"
-          />
-          <RecordingCard
-            description="Description of event"
-            title="Event 2"
-            type="today"
-          />
-          <RecordingCard
-            description="Description of event"
-            title="Event 3"
-            type="today"
-          />
+          {allFullRecordings?.data?.map((recording, i) => {
+            return (
+              <RecordingCard
+                description={recording.label ?? ""}
+                fullRecordingId={recording.id}
+                key={recording.id}
+                supabaseUrl={recording.supabaseUrl}
+                title={`Event ${i + 1}`}
+                type="saved"
+              />
+            );
+          })}
         </ThemedView>
-        <ThemedView style={styles.activityContainer}>
+        {/* <ThemedView style={styles.activityContainer}>
           <ThemedText type="subtitle">Saved Recordings</ThemedText>
-          <RecordingCard
-            description="Description of event"
-            title="Event 1"
-            type="saved"
-          />
-          <RecordingCard
-            description="Description of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of event"
-            title="Event 2"
-            type="saved"
-          />
-          <RecordingCard
-            description="Description of event"
-            title="Event 3"
-            type="saved"
-          />
-        </ThemedView>
+        </ThemedView> */}
       </ThemedView>
     </ParallaxScrollView>
   );

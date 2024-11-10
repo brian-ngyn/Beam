@@ -4,6 +4,7 @@ import * as trpcNext from "@trpc/server/adapters/next";
 import { createClerkClient, getAuth } from "@clerk/nextjs/server";
 import type { AuthObject } from "@clerk/backend";
 import { createClient } from "@supabase/supabase-js";
+import twilio from "twilio";
 
 /**
  * Replace this with an object if you want to pass things to createContextInner
@@ -21,6 +22,11 @@ const supabaseClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
 );
 
+const twilioClient = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN,
+);
+
 /** Use this helper for:
  *  - testing, where we dont have to Mock Next.js' req/res
  *  - trpc's `createSSGHelpers` where we don't have req/res
@@ -32,6 +38,7 @@ export const createContextInner = async ({ auth }: AuthContextProps) => {
     clerkClient,
     prisma,
     supabaseClient,
+    twilioClient,
     userId: auth.userId,
   };
 };

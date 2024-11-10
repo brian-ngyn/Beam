@@ -27,15 +27,6 @@ export const userRouter = router({
       return existingUser;
     }),
 
-  updateUser: protectedProcedure.input(z.object({ phoneNumber: z.string() })).mutation(async ({ ctx, input }) => {
-    return await ctx.prisma.user.update({
-      where: { clerkId: ctx.userId },
-      data: {
-        phoneNumber: input.phoneNumber
-      }
-    })
-  }),
-
   getAllClerkUsers: protectedProcedure.query(async ({ ctx }) => {
     const users = await ctx.clerkClient.users.getUserList();
     return users.data.map((user) => ({
@@ -44,10 +35,15 @@ export const userRouter = router({
       id: user.id,
       imageUrl: user.hasImage ? user.imageUrl : undefined,
       lastName: user.lastName,
+      phoneNumber: user.phoneNumbers[0]?.phoneNumber,
       publicMetadata: user.publicMetadata,
       role: user.publicMetadata?.role,
       username: user.username,
     }));
+  }),
+
+  getAllDbUsers: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.prisma.user.findMany();
   }),
 
   getUser: protectedProcedure.query(async ({ ctx, input }) => {
@@ -108,5 +104,16 @@ export const userRouter = router({
           where: { id: emergencyContact1.id },
         });
       }
+    }),
+
+  updateUser: protectedProcedure
+    .input(z.object({ phoneNumber: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.prisma.user.update({
+        data: {
+          phoneNumber: input.phoneNumber,
+        },
+        where: { clerkId: ctx.userId },
+      });
     }),
 });
