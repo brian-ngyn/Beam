@@ -1,13 +1,12 @@
-
-import { z } from 'zod';
-import { router, protectedProcedure } from '../trpc';
+import { z } from "zod";
+import { router, protectedProcedure } from "../trpc";
 
 export const userRouter = router({
   sendInvite: protectedProcedure
     .input(
       z.object({
-        toUserId: z.number(), // Adjust to z.string() if using UUIDs
-      })
+        toUserId: z.string(), // Adjust to z.string() if using UUIDs
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const fromUserId = ctx.userId;
@@ -23,7 +22,7 @@ export const userRouter = router({
       });
 
       if (existingInvite) {
-        throw new Error('Invite already sent to this user.');
+        throw new Error("Invite already sent to this user.");
       }
 
       // Create the invite
@@ -31,18 +30,18 @@ export const userRouter = router({
         data: {
           fromId: fromUserId,
           toId: input.toUserId,
-          status: 'PENDING',
+          status: "PENDING",
         },
       });
 
       return invite;
     }),
 
-    getUser: protectedProcedure
+  getUser: protectedProcedure
     .input(
       z.object({
-        userId: z.number().optional(),
-      })
+        userId: z.string(),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const userId = input.userId || ctx.userId;
@@ -63,16 +62,16 @@ export const userRouter = router({
         },
       });
       if (!user) {
-        throw new Error('User not found.');
+        throw new Error("User not found.");
       }
       return user;
     }),
 
-    acceptInvite: protectedProcedure
+  acceptInvite: protectedProcedure
     .input(
       z.object({
-        fromUserId: z.number(),
-      })
+        fromUserId: z.string(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const toUserId = ctx.userId;
@@ -86,8 +85,8 @@ export const userRouter = router({
         },
       });
 
-      if (!invite || invite.status !== 'PENDING') {
-        throw new Error('Invite not found or already processed.');
+      if (!invite || invite.status !== "PENDING") {
+        throw new Error("Invite not found or already processed.");
       }
 
       // Update invite status to ACCEPTED
@@ -98,7 +97,7 @@ export const userRouter = router({
             toId: toUserId,
           },
         },
-        data: { status: 'ACCEPTED' },
+        data: { status: "ACCEPTED" },
       });
 
       // Add as emergency contact
@@ -109,14 +108,14 @@ export const userRouter = router({
         },
       });
 
-      return { message: 'Invite accepted and emergency contact added.' };
+      return { message: "Invite accepted and emergency contact added." };
     }),
 
   rejectInvite: protectedProcedure
     .input(
       z.object({
-        fromUserId: z.number(),
-      })
+        fromUserId: z.string(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const toUserId = ctx.userId;
@@ -130,8 +129,8 @@ export const userRouter = router({
         },
       });
 
-      if (!invite || invite.status !== 'PENDING') {
-        throw new Error('Invite not found or already processed.');
+      if (!invite || invite.status !== "PENDING") {
+        throw new Error("Invite not found or already processed.");
       }
 
       // Update invite status to REJECTED
@@ -142,9 +141,9 @@ export const userRouter = router({
             toId: toUserId,
           },
         },
-        data: { status: 'REJECTED' },
+        data: { status: "REJECTED" },
       });
 
-      return { message: 'Invite rejected.' };
+      return { message: "Invite rejected." };
     }),
 });

@@ -11,44 +11,27 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model Post {
-  id      String @id @default(cuid())
-  title   String
-  content String
-}
-
-model FeatureFlags {
-  flagName  FLAGS   @id @unique
-  isEnabled Boolean @default(false)
-}
-
-enum FLAGS {
-  FEATURE_ONE
-  FEATURE_TWO
-  FEATURE_THREE
-}
-
 model User {
-  id                 Int                 @id @default(autoincrement())
+  id                 String               @id @default(cuid())
   name               String
   phoneNumber        String
   safeWord           String
-  emergencyContacts  EmergencyContact[]  @relation("UserEmergencyContacts")
-  emergencyFor       EmergencyContact[]  @relation("UserEmergencyFor")
+  emergencyContacts  EmergencyContact[]   @relation("UserEmergencyContacts")
+  emergencyFor       EmergencyContact[]   @relation("UserEmergencyFor")
   recordings         Recording[]
   liveStream         LiveStream?
-  sentInvites        Invite[]            @relation("InviteFrom")
-  receivedInvites    Invite[]            @relation("InviteTo")
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  sentInvites        Invite[]             @relation("InviteFrom")
+  receivedInvites    Invite[]             @relation("InviteTo")
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 }
 
 model EmergencyContact {
   id           Int      @id @default(autoincrement())
   user         User     @relation("UserEmergencyContacts", fields: [userId], references: [id])
-  userId       Int
+  userId       String
   contact      User     @relation("UserEmergencyFor", fields: [contactId], references: [id])
-  contactId    Int
+  contactId    String
   createdAt    DateTime @default(now())
 
   @@unique([userId, contactId])
@@ -64,7 +47,7 @@ model Recording {
   transcript String
   summary    String
   timestamp  DateTime @default(now())
-  userId     Int
+  userId     String
   user       User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
@@ -73,9 +56,9 @@ model Recording {
 model Invite {
   id         Int          @id @default(autoincrement())
   from       User         @relation("InviteFrom", fields: [fromId], references: [id])
-  fromId     Int
+  fromId     String
   to         User         @relation("InviteTo", fields: [toId], references: [id])
-  toId       Int
+  toId       String
   status     InviteStatus
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
@@ -96,7 +79,7 @@ model LiveStream {
   id        Int      @id @default(autoincrement())
   uid       String   @unique
   link      String
-  userId    Int      @unique
+  userId    String   @unique
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
 
