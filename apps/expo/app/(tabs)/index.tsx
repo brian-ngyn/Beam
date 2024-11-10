@@ -10,6 +10,7 @@ import { Camera, CameraType, CameraView } from "expo-camera";
 import { Video, ResizeMode } from "expo-av";
 import { supabase } from "../../utils/trpc";
 import * as FileSystem from "expo-file-system";
+import { LiveRecordingAlert } from "../../components/LiveRecordingAlert";
 
 export default function ExploreScreen() {
   const { user } = useUser();
@@ -36,7 +37,9 @@ export default function ExploreScreen() {
     const recordChunks = async () => {
       try {
         if (isRecording && cameraRef.current) {
-          const recording = await cameraRef.current.recordAsync({ maxDuration: 5 });
+          const recording = await cameraRef.current.recordAsync({
+            maxDuration: 5,
+          });
           if (recording?.uri) {
             const fileContents = await FileSystem.readAsStringAsync(
               recording.uri,
@@ -56,16 +59,17 @@ export default function ExploreScreen() {
             setVideoUri((prev) => [...prev, recording.uri]);
             return recording.uri;
           } else {
-            console.error("Couldn't get recording URI")
+            console.error("Couldn't get recording URI");
           }
         }
       } catch (err) {
         console.error(err);
       }
-    }
+    };
     recordChunks();
-    return () => (cameraRef.current && cameraRef.current.stopRecording()) ?? undefined;
-  }, [isRecording, videoUri])
+    return () =>
+      (cameraRef.current && cameraRef.current.stopRecording()) ?? undefined;
+  }, [isRecording, videoUri]);
 
   useEffect(() => {
     console.log(videoUri);
@@ -112,6 +116,7 @@ export default function ExploreScreen() {
             <ThemedView style={styles.recordingButton1} />
           </TouchableOpacity>
         )}
+        {!isRecording && <LiveRecordingAlert />}
         {isRecording && (
           <ThemedView style={styles.videoControlsContainer}>
             <TouchableOpacity
