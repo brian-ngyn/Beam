@@ -4,12 +4,20 @@ import { ThemedView } from "../ThemedView";
 import { ThemedText } from "../ThemedText";
 
 interface LivestreamCardProps {
+  onPress: (id: string) => void;
   name: string;
+  id: string;
 }
 
 export const LivestreamCard = (props: LivestreamCardProps) => {
   return (
-    <TouchableOpacity style={styles.liveRecordingCard}>
+    <TouchableOpacity
+      onPress={() => {
+        console.log("pressing livestream card");
+        props.onPress(props.id);
+      }}
+      style={styles.liveRecordingCard}
+    >
       <ThemedView style={styles.liveRecordingText}>
         <ThemedText lightColor="black" type="defaultSemiBold">
           {props.name}
