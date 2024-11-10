@@ -7,9 +7,7 @@ import { RecordingCard } from "../../components/recordingCard/RecordingCard";
 
 export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ dark: "#353636", light: "#FCFAFA" }}
-    >
+    <ParallaxScrollView>
       <ThemedView>
         <ThemedText type="title">Activity</ThemedText>
       </ThemedView>
