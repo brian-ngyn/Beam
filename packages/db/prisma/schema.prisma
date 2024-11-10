@@ -30,13 +30,14 @@ model EmergencyContact {
 }
 
 model Recording {
-  id         Int      @id @default(autoincrement())
-  clerkId    String
-  label      String
-  s3Link     String
-  transcript String
-  summary    String
-  timestamp  DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  clerkId     String
+  supabaseUrl String
+  recordingId String
+  chunkNumber Int
+  transcript  String?
+  summary     String?
+  createdAt   DateTime @default(now())
 }
 
 model Invite {
