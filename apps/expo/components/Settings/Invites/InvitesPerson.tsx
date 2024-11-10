@@ -1,14 +1,30 @@
+import { trpc } from "../../../utils/trpc";
 import { ThemedText } from "../../ThemedText";
 import { ThemedView } from "../../ThemedView";
 import { Image, StyleSheet, TouchableOpacity } from "react-native";
 
 interface PersonProps {
   name: string;
+  fromClerkId: string;
   email: string;
   image_uri: string;
 }
 
 export const InvitesPerson = (props: PersonProps) => {
+  const utils = trpc.useUtils();
+  const acceptInviteMutation = trpc.invite.acceptInvite.useMutation({
+    onSettled: () => {
+      utils.user.listCommunityMembers.invalidate();
+      utils.invite.listReceivedInvites.invalidate();
+    },
+  });
+  const rejectInviteMutation = trpc.invite.rejectInvite.useMutation({
+    onSettled: () => {
+      utils.user.listCommunityMembers.invalidate();
+      utils.invite.listReceivedInvites.invalidate();
+    },
+  });
+
   return (
     <ThemedView style={styles.container}>
       <Image
@@ -22,7 +38,9 @@ export const InvitesPerson = (props: PersonProps) => {
         <ThemedView style={styles.actionsContainer}>
           <TouchableOpacity
             onPress={() => {
-              console.log("delete");
+              rejectInviteMutation.mutate({
+                fromClerkId: props.fromClerkId,
+              });
             }}
             style={styles.deleteButton}
           >
@@ -30,7 +48,9 @@ export const InvitesPerson = (props: PersonProps) => {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
-              console.log("delete");
+              acceptInviteMutation.mutate({
+                fromClerkId: props.fromClerkId,
+              });
             }}
             style={styles.acceptButton}
           >

@@ -2,148 +2,102 @@ import { z } from "zod";
 import { router, protectedProcedure } from "../trpc";
 
 export const userRouter = router({
-  sendInvite: protectedProcedure
+  createUser: protectedProcedure
     .input(
       z.object({
-        toUserId: z.string(), // Adjust to z.string() if using UUIDs
+        clerkId: z.string(),
+        email: z.string(),
+        name: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const fromUserId = ctx.userId;
-
-      // Check if invite already exists
-      const existingInvite = await ctx.prisma.invite.findUnique({
-        where: {
-          fromId_toId: {
-            fromId: fromUserId,
-            toId: input.toUserId,
+      const existingUser = await ctx.prisma.user.findUnique({
+        where: { clerkId: input.clerkId },
+      });
+      if (!existingUser) {
+        const user = await ctx.prisma.user.create({
+          data: {
+            clerkId: input.clerkId,
+            email: input.email,
+            name: input.name,
           },
-        },
-      });
-
-      if (existingInvite) {
-        throw new Error("Invite already sent to this user.");
+        });
+        return user;
       }
-
-      // Create the invite
-      const invite = await ctx.prisma.invite.create({
-        data: {
-          fromId: fromUserId,
-          toId: input.toUserId,
-          status: "PENDING",
-        },
-      });
-
-      return invite;
+      return existingUser;
     }),
 
-  getUser: protectedProcedure
-    .input(
-      z.object({
-        userId: z.string(),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const userId = input.userId || ctx.userId;
-      const user = await ctx.prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          recordings: true,
-          liveStream: true,
-          emergencyContacts: {
-            include: { contact: true },
-          },
-          sentInvites: {
-            include: { to: true },
-          },
-          receivedInvites: {
-            include: { from: true },
-          },
-        },
-      });
-      if (!user) {
-        throw new Error("User not found.");
-      }
-      return user;
-    }),
+  getAllClerkUsers: protectedProcedure.query(async ({ ctx }) => {
+    const users = await ctx.clerkClient.users.getUserList();
+    return users.data.map((user) => ({
+      email: user.emailAddresses[0]?.emailAddress,
+      firstName: user.firstName,
+      id: user.id,
+      imageUrl: user.hasImage ? user.imageUrl : undefined,
+      lastName: user.lastName,
+      publicMetadata: user.publicMetadata,
+      role: user.publicMetadata?.role,
+      username: user.username,
+    }));
+  }),
 
-  acceptInvite: protectedProcedure
-    .input(
-      z.object({
-        fromUserId: z.string(),
-      }),
-    )
+  getUser: protectedProcedure.query(async ({ ctx, input }) => {
+    const userId = ctx.userId;
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new Error("User not found.");
+    }
+    return user;
+  }),
+  listCommunityMembers: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.userId;
+
+    const communityMembers1 = await ctx.prisma.emergencyContact.findMany({
+      where: { contactClerkId: userId },
+    });
+    const communityMembers2 = await ctx.prisma.emergencyContact.findMany({
+      where: { clerkId: userId },
+    });
+
+    //remove duplicates from 1 and 2
+    const communityMembers = [
+      ...new Map(
+        [...communityMembers1, ...communityMembers2].map((item) => [
+          item["clerkId"],
+          item,
+        ]),
+      ).values(),
+    ].filter((member) => member.clerkId !== userId);
+
+    return communityMembers;
+  }),
+  removeCommunityMember: protectedProcedure
+    .input(z.object({ clerkIdToRemove: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const toUserId = ctx.userId;
-
-      const invite = await ctx.prisma.invite.findUnique({
+      const userId = ctx.userId;
+      const emergencyContact = await ctx.prisma.emergencyContact.findFirst({
         where: {
-          fromId_toId: {
-            fromId: input.fromUserId,
-            toId: toUserId,
-          },
+          clerkId: userId,
+          contactClerkId: input.clerkIdToRemove,
         },
       });
-
-      if (!invite || invite.status !== "PENDING") {
-        throw new Error("Invite not found or already processed.");
+      if (emergencyContact) {
+        await ctx.prisma.emergencyContact.delete({
+          where: { id: emergencyContact.id },
+        });
       }
-
-      // Update invite status to ACCEPTED
-      await ctx.prisma.invite.update({
+      const emergencyContact1 = await ctx.prisma.emergencyContact.findFirst({
         where: {
-          fromId_toId: {
-            fromId: input.fromUserId,
-            toId: toUserId,
-          },
-        },
-        data: { status: "ACCEPTED" },
-      });
-
-      // Add as emergency contact
-      await ctx.prisma.emergencyContact.create({
-        data: {
-          userId: input.fromUserId,
-          contactId: toUserId,
+          clerkId: input.clerkIdToRemove,
+          contactClerkId: userId,
         },
       });
-
-      return { message: "Invite accepted and emergency contact added." };
-    }),
-
-  rejectInvite: protectedProcedure
-    .input(
-      z.object({
-        fromUserId: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const toUserId = ctx.userId;
-
-      const invite = await ctx.prisma.invite.findUnique({
-        where: {
-          fromId_toId: {
-            fromId: input.fromUserId,
-            toId: toUserId,
-          },
-        },
-      });
-
-      if (!invite || invite.status !== "PENDING") {
-        throw new Error("Invite not found or already processed.");
+      if (emergencyContact1) {
+        await ctx.prisma.emergencyContact.delete({
+          where: { id: emergencyContact1.id },
+        });
       }
-
-      // Update invite status to REJECTED
-      await ctx.prisma.invite.update({
-        where: {
-          fromId_toId: {
-            fromId: input.fromUserId,
-            toId: toUserId,
-          },
-        },
-        data: { status: "REJECTED" },
-      });
-
-      return { message: "Invite rejected." };
     }),
 });
