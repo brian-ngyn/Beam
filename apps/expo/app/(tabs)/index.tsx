@@ -121,9 +121,6 @@ export default function ExploreScreen() {
       (cameraRef.current && cameraRef.current.stopRecording()) ?? undefined;
   }, [isRecording, videoUri]);
 
-  useEffect(() => {
-    console.log(videoUri);
-  }, [videoUri]);
 
   const stopRecording = useCallback(async () => {
     if (cameraRef.current) {

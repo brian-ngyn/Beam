@@ -167,7 +167,7 @@ export const recordingRouter = router({
   fetchMostRecentRecordingChunk: protectedProcedure
     .input(z.object({ clerkIdToFetchFrom: z.string() }))
     .query(async ({ ctx, input }) => {
-      const recording = await ctx.prisma.recording.findFirst({
+      const recording = await ctx.prisma.recording.findMany({
         orderBy: {
           createdAt: "desc",
         },

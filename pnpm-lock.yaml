@@ -78,6 +78,7 @@ importers:
       expo-secure-store: ^13.0.2
       expo-splash-screen: ^0.27.5
       expo-status-bar: ~1.12.1
+      expo-video: ^1.2.7
       expo-web-browser: ^13.0.3
       nativewind: ^2.0.11
       postcss: ^8.4.41
@@ -121,6 +122,7 @@ importers:
       expo-secure-store: 13.0.2_expo@51.0.38
       expo-splash-screen: 0.27.6_expo@51.0.38
       expo-status-bar: 1.12.1
+      expo-video: 1.2.7_expo@51.0.38
       expo-web-browser: 13.0.3_expo@51.0.38
       nativewind: 2.0.11_nhnkidnyvqaplqe4eshq4owoem
       react: 18.2.0
@@ -6887,6 +6889,14 @@ packages:
 
   /expo-updates-interface/0.16.2_expo@51.0.38:
     resolution: {integrity: sha512-929XBU70q5ELxkKADj1xL0UIm3HvhYhNAOZv5DSk7rrKvLo7QDdPyl+JVnwZm9LrkNbH4wuE2rLoKu1KMgZ+9A==}
+    peerDependencies:
+      expo: '*'
+    dependencies:
+      expo: 51.0.38_7mewpqcztbeim73nhq63wxlooq
+    dev: false
+
+  /expo-video/1.2.7_expo@51.0.38:
+    resolution: {integrity: sha512-bX5NFDQvAzkN5rHX8RNGX+I+y28I+652/LqKgo23kGSw5Lcq3h1/anazZa22HEQdXNJKFFbweB1C0o949dyi1w==}
     peerDependencies:
       expo: '*'
     dependencies:
