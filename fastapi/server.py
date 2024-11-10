@@ -91,7 +91,7 @@ def detect_aggression(text: str) -> float:
             return float(result['score'])
     return 0.0  # Non-aggressive
 
-def check_safe_word(text: str, safe_word: str) -> bool:
+def check_safe_word(text: str, safe_word: str = "beam") -> bool:
     """
     Checks if the provided safe word is present in the text.
 

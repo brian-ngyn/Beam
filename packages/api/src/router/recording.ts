@@ -12,6 +12,16 @@ interface SummarizationResponse {
   label: string;
 }
 
+interface TriggerDetectionReq {
+  url_mov: string
+  safe_word: string
+}
+
+interface TriggerDetectionResponse {
+  safe_word: boolean;
+  aggression_level: number;
+}
+
 const execAsync = promisify(exec);
 
 export const recordingRouter = router({
@@ -121,15 +131,37 @@ export const recordingRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const recordingChunk = await ctx.prisma.recording.create({
-        data: {
-          chunkNumber: input.chunkNumber,
-          clerkId: ctx.userId,
-          supabaseUrl: `https://ubsqqcchbqdvjhlyrpic.supabase.co/storage/v1/object/public/videos/${input.chunkPath}`,
-        },
-      });
+      try {
+        const supabaseUrl = `https://ubsqqcchbqdvjhlyrpic.supabase.co/storage/v1/object/public/videos/${input.chunkPath}`
+        const recordingChunk = await ctx.prisma.recording.create({
+          data: {
+            chunkNumber: input.chunkNumber,
+            clerkId: ctx.userId,
+            supabaseUrl,
+          },
+        });
 
-      return recordingChunk;
+        const requestTriggerDetection = async (request: TriggerDetectionReq): Promise<TriggerDetectionResponse> => {
+          try {
+            const result = await fetch(`${process.env.FASTAPI_URL}/trigger_detection`, { method: "POST", body: JSON.stringify(request), headers: new Headers({ "Content-Type": "application/json" }) })
+            const data = await result.json() as TriggerDetectionResponse;
+            if (data.safe_word || data.aggression_level >= 0.7) {
+              console.log("danger detected")
+              await ctx.prisma.user.update({ where: { clerkId: ctx.userId }, data: { isLivestreaming: true } })
+            }
+            return data;
+          } catch (err) {
+            console.error(err);
+            return { aggression_level: 0, safe_word: false }
+          }
+        }
+
+        requestTriggerDetection({ safe_word: "beam", url_mov: supabaseUrl })
+
+        return recordingChunk;
+      } catch (err) {
+        console.error(err);
+      }
     }),
 
   fetchMostRecentRecordingChunk: protectedProcedure
@@ -173,3 +205,4 @@ export const recordingRouter = router({
       return recordings;
     }),
 });
+

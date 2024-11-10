@@ -97,7 +97,7 @@ export default function ExploreScreen() {
             );
             const chunkNumber = videoUri.length;
             const chunkPath = `${user!.id}/${chunkNumber}.mov`;
-            supabase.storage.from("videos").upload(
+            await supabase.storage.from("videos").upload(
               chunkPath,
               Uint8Array.from(atob(fileContents), (c) => c.charCodeAt(0)),
               {
