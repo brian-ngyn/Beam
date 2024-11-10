@@ -1,30 +1,30 @@
 // src/server/router/liveStream.ts
-import { z } from 'zod';
-import { router, protectedProcedure } from '../trpc';
+import { z } from "zod";
+import { router, protectedProcedure } from "../trpc";
 
 export const liveStreamRouter = router({
-    getLiveStream: protectedProcedure
-      .input(
-        z.object({
-          userId: z.number(),
-        })
-      )
-      .query(async ({ ctx, input }) => {
-        const liveStream = await ctx.prisma.liveStream.findUnique({
-          where: { userId: input.userId },
-        });
-        if (!liveStream) {
-          throw new Error('Live stream not found for this user.');
-        }
-        return liveStream;
+  getLiveStream: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
       }),
+    )
+    .query(async ({ ctx, input }) => {
+      const liveStream = await ctx.prisma.liveStream.findUnique({
+        where: { userId: input.userId },
+      });
+      if (!liveStream) {
+        throw new Error("Live stream not found for this user.");
+      }
+      return liveStream;
+    }),
 
-      startLiveStream: protectedProcedure
+  startLiveStream: protectedProcedure
     .input(
       z.object({
         uid: z.string(),
         link: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.userId;
@@ -35,7 +35,7 @@ export const liveStreamRouter = router({
       });
 
       if (existingStream) {
-        throw new Error('You already have an active live stream.');
+        throw new Error("You already have an active live stream.");
       }
 
       // Create new live stream
@@ -58,7 +58,6 @@ export const liveStreamRouter = router({
       where: { userId },
     });
 
-    return { message: 'Live stream ended.' };
+    return { message: "Live stream ended." };
   }),
-  });
-  
+});

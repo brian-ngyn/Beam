@@ -1,14 +1,14 @@
 // src/server/router/invite.ts
 
-import { z } from 'zod';
-import { router, protectedProcedure } from '../trpc';
+import { z } from "zod";
+import { router, protectedProcedure } from "../trpc";
 
 export const inviteRouter = router({
   sendInvite: protectedProcedure
     .input(
       z.object({
-        toUserId: z.number(),
-      })
+        toUserId: z.string(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const fromUserId = ctx.userId;
@@ -24,7 +24,7 @@ export const inviteRouter = router({
       });
 
       if (existingInvite) {
-        throw new Error('Invite already sent to this user.');
+        throw new Error("Invite already sent to this user.");
       }
 
       // Create the invite
@@ -32,7 +32,7 @@ export const inviteRouter = router({
         data: {
           fromId: fromUserId,
           toId: input.toUserId,
-          status: 'PENDING',
+          status: "PENDING",
         },
       });
 
@@ -42,8 +42,8 @@ export const inviteRouter = router({
   acceptInvite: protectedProcedure
     .input(
       z.object({
-        fromUserId: z.number(),
-      })
+        fromUserId: z.string(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const toUserId = ctx.userId;
@@ -57,8 +57,8 @@ export const inviteRouter = router({
         },
       });
 
-      if (!invite || invite.status !== 'PENDING') {
-        throw new Error('Invite not found or already processed.');
+      if (!invite || invite.status !== "PENDING") {
+        throw new Error("Invite not found or already processed.");
       }
 
       // Update invite status to ACCEPTED
@@ -69,20 +69,20 @@ export const inviteRouter = router({
             toId: toUserId,
           },
         },
-        data: { status: 'ACCEPTED' },
+        data: { status: "ACCEPTED" },
       });
 
       // Now allow the sender to add the recipient as an emergency contact
       // This could be done automatically here or require the sender to manually add them
 
-      return { message: 'Invite accepted.' };
+      return { message: "Invite accepted." };
     }),
 
   rejectInvite: protectedProcedure
     .input(
       z.object({
-        fromUserId: z.number(),
-      })
+        fromUserId: z.string(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const toUserId = ctx.userId;
@@ -96,8 +96,8 @@ export const inviteRouter = router({
         },
       });
 
-      if (!invite || invite.status !== 'PENDING') {
-        throw new Error('Invite not found or already processed.');
+      if (!invite || invite.status !== "PENDING") {
+        throw new Error("Invite not found or already processed.");
       }
 
       // Update invite status to REJECTED
@@ -108,10 +108,10 @@ export const inviteRouter = router({
             toId: toUserId,
           },
         },
-        data: { status: 'REJECTED' },
+        data: { status: "REJECTED" },
       });
 
-      return { message: 'Invite rejected.' };
+      return { message: "Invite rejected." };
     }),
 
   listReceivedInvites: protectedProcedure.query(async ({ ctx }) => {
@@ -120,7 +120,7 @@ export const inviteRouter = router({
     const invites = await ctx.prisma.invite.findMany({
       where: {
         toId: toUserId,
-        status: 'PENDING',
+        status: "PENDING",
       },
       include: {
         from: true,

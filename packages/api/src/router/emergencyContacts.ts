@@ -7,7 +7,7 @@ export const emergencyContactRouter = router({
   addEmergencyContact: protectedProcedure
     .input(
       z.object({
-        contactId: z.number(), // Use z.string().uuid() if using UUIDs
+        contactId: z.string(), // Use z.string().uuid() if using UUIDs
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -52,7 +52,7 @@ export const emergencyContactRouter = router({
   removeEmergencyContact: protectedProcedure
     .input(
       z.object({
-        contactId: z.number(), // Use z.string().uuid() if using UUIDs
+        contactId: z.string(), // Use z.string().uuid() if using UUIDs
       }),
     )
     .mutation(async ({ ctx, input }) => {
