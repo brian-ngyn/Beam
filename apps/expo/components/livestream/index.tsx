@@ -42,21 +42,30 @@ const LiveStream = (props: { clerkId: string }) => {
   })
 
   const video = useRef<Video>(null);
-  const [chunkPlayingIndex, setChunkPlayingIndex] = useState(0)
+  const [chunkPlayingIndex, setChunkPlayingIndex] = useState<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     if ((data?.length ?? 0) >= 3 && !isPlaying) {
       setIsPlaying(true);
-      setChunkPlayingIndex(data!.length - 3);
+      setChunkPlayingIndex(Math.max(...data?.map(v => v.chunkNumber) ?? []) - 3);
     }
   }, [data])
 
-  const playingChunk = chunkPlayingIndex != null ? data?.find(r => r.chunkNumber === chunkPlayingIndex)?.supabaseUrl : null;
-  playingChunk && video.current?.unloadAsync().then(() => video.current?.loadAsync({ uri: playingChunk }, { shouldPlay: true }, true))
+  useEffect(() => {
+    const playingChunk = chunkPlayingIndex != null ? data?.find(r => r.chunkNumber === chunkPlayingIndex)?.supabaseUrl : null;
+    if (!video.current) {
+      console.error("WERE FUCKEDD")
+      return;
+    } else {
+      console.error("NOT ACTAULLY FUCKED")
+    }
+    playingChunk && video.current!.loadAsync({ uri: playingChunk }, { shouldPlay: true }, true)
+  }, [chunkPlayingIndex])
+
 
   return <View style={styles.container}>
-    {playingChunk && <Video
+    {chunkPlayingIndex != null && <Video
       ref={video}
       style={styles.video}
       useNativeControls
@@ -65,10 +74,12 @@ const LiveStream = (props: { clerkId: string }) => {
       shouldCorrectPitch
       isLooping
       onPlaybackStatusUpdate={async status => {
-        console.log({ status })
         if ((status as any).didJustFinish) {
-          setChunkPlayingIndex(prev => prev + 1)
-          await video.current?.unloadAsync()
+          setChunkPlayingIndex(prev => (prev ?? -1) + 1)
+          if (!video.current) {
+            console.error("WERE COOKED")
+          }
+          await video.current!.unloadAsync()
         }
       }}
     />}
