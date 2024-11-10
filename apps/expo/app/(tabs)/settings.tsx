@@ -5,19 +5,23 @@ import { ThemedView } from "../../components/ThemedView";
 import ParallaxScrollView from "../../components/ParallaxScrollView";
 import { CommunityPerson } from "../../components/Settings/YourCommunity/CommunityPerson";
 import { InvitesPerson } from "../../components/Settings/Invites/InvitesPerson";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ThemedTextInput } from "../../components/ThemedTextInput";
 import { trpc } from "../../utils/trpc";
 import { useAppContext } from "../../context/appContext";
 import SignOut from "../(auth)/signout";
-import { FlatList } from "react-native-reanimated/lib/typescript/Animated";
 
 export default function TestScreen() {
   const [emailInput, setEmailInput] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const { allClerkUsers } = useAppContext();
   const communityMembers = trpc.user.listCommunityMembers.useQuery();
   const incomingInvites = trpc.invite.listReceivedInvites.useQuery();
   const user = trpc.user.getUser.useQuery();
+
+  useEffect(() => {
+    setPhoneNumber(user.data?.phoneNumber ?? "");
+  }, [user?.data]);
 
   const utils = trpc.useUtils();
 
@@ -66,15 +70,20 @@ export default function TestScreen() {
         <ThemedText type="default">Your phone number</ThemedText>
         <ThemedView style={styles.addPersonInputContainer}>
           <ThemedTextInput
-            onChangeText={async (text) => {
-              await updatePhoneNumberMutation.mutateAsync({
-                phoneNumber: text.trim(),
-              });
+            onChangeText={(text) => {
+              setPhoneNumber(text);
             }}
             placeholder="Phone Number"
-            value={user.data?.phoneNumber ?? ""}
+            value={phoneNumber}
           />
-          <TouchableOpacity onPress={() => {}} style={styles.addPersonButton}>
+          <TouchableOpacity
+            onPress={async () => {
+              await updatePhoneNumberMutation.mutateAsync({
+                phoneNumber: phoneNumber.trim(),
+              });
+            }}
+            style={styles.addPersonButton}
+          >
             <ThemedText lightColor="black" type="defaultSemiBold">
               +
             </ThemedText>
