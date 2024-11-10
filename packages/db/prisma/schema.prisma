@@ -27,3 +27,78 @@ enum FLAGS {
   FEATURE_TWO
   FEATURE_THREE
 }
+
+model User {
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  phoneNumber        String
+  safeWord           String
+  emergencyContacts  EmergencyContact[]  @relation("UserEmergencyContacts")
+  emergencyFor       EmergencyContact[]  @relation("UserEmergencyFor")
+  recordings         Recording[]
+  liveStream         LiveStream?
+  sentInvites        Invite[]            @relation("InviteFrom")
+  receivedInvites    Invite[]            @relation("InviteTo")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+}
+
+model EmergencyContact {
+  id           Int      @id @default(autoincrement())
+  user         User     @relation("UserEmergencyContacts", fields: [userId], references: [id])
+  userId       Int
+  contact      User     @relation("UserEmergencyFor", fields: [contactId], references: [id])
+  contactId    Int
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, contactId])
+
+  @@index([userId])
+  @@index([contactId])
+}
+
+model Recording {
+  id         Int      @id @default(autoincrement())
+  label      String
+  s3Link     String
+  transcript String
+  summary    String
+  timestamp  DateTime @default(now())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model Invite {
+  id         Int          @id @default(autoincrement())
+  from       User         @relation("InviteFrom", fields: [fromId], references: [id])
+  fromId     Int
+  to         User         @relation("InviteTo", fields: [toId], references: [id])
+  toId       Int
+  status     InviteStatus
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([fromId, toId])
+
+  @@index([fromId])
+  @@index([toId])
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model LiveStream {
+  id        Int      @id @default(autoincrement())
+  uid       String   @unique
+  link      String
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
