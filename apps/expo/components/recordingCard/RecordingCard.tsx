@@ -23,7 +23,7 @@ export const RecordingCard = (props: RecordingCardProps) => {
               console.log("play");
             }}
           >
-            <Ionicons color={"#BD8DBF"} name={"play"} size={24} />
+            <Ionicons color={"#555"} name={"play"} size={24} />
           </TouchableOpacity>
         </ThemedView>
       </ThemedView>
@@ -36,7 +36,7 @@ export const RecordingCard = (props: RecordingCardProps) => {
             }}
             style={styles.discardButton}
           >
-            <ThemedText>Delete</ThemedText>
+            <ThemedText lightColor="white">Delete</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
@@ -44,7 +44,7 @@ export const RecordingCard = (props: RecordingCardProps) => {
             }}
             style={styles.saveButton}
           >
-            <ThemedText>Save</ThemedText>
+            <ThemedText lightColor="white">Save</ThemedText>
           </TouchableOpacity>
         </ThemedView>
       )}
