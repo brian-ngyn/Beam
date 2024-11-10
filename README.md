@@ -3,15 +3,12 @@
 
 Beam is a mobile application that enhances personal safety by leveraging real-time sentiment analysis and natural language processing (NLP). It continuously monitors conversations to detect aggression levels, and upon detecting a predefined safe word, it automatically triggers live streaming to a set of emergency contacts.
 
----
-
 ## Idea
 
 **Does the product address the prompt? Does the product introduce a new/unique approach or perspective?**
 
 Beam addresses the prompt by using technology to promote peace and inclusion in society. It provides access to justice and safety by enabling individuals to call for help in hostile situations discreetly. The unique approach of combining real-time aggression detection with automatic live streaming offers a proactive solution to personal safety challenges.
 
----
 
 ## Effectiveness
 
@@ -25,7 +22,6 @@ Yes, the application functions as intended by:
 
 This seamless integration ensures that users receive timely assistance, effectively executing the core idea.
 
----
 
 ## Technical Challenge
 
@@ -40,7 +36,7 @@ Beam performs its intended functions efficiently and demonstrates significant te
 - **Advanced NLP Implementation:** Real-time processing of audio data to detect aggression.
 - **Innovation:** Introduces a novel solution that proactively enhances personal safety through technology.
 
----
+
 
 ## Presentation and Marketability
 
@@ -133,12 +129,10 @@ pnpm db-push
 
 3. Done. Assign your domain and use that instead of `localhost` for the `url` in the Expo app so that your Expo app can communicate with your backend when you are not in development.
 
----
 
 ## Team
 Brian Nguyen, Abod Abbas, Dimitar Janevski, Dhyey Lalseta
 
----
 
 
 Thank you for considering Beam as a solution to promote peace and inclusion through technology.
