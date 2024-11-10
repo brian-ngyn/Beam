@@ -1,26 +1,85 @@
+ 
+## Introduction
+
+Beam is a mobile application that enhances personal safety by leveraging real-time sentiment analysis and natural language processing (NLP). It continuously monitors conversations to detect aggression levels, and upon detecting a predefined safe word, it automatically triggers live streaming to a set of emergency contacts.
+
+---
+
+## Idea
+
+**Does the product address the prompt? Does the product introduce a new/unique approach or perspective?**
+
+Beam addresses the prompt by using technology to promote peace and inclusion in society. It provides access to justice and safety by enabling individuals to call for help in hostile situations discreetly. The unique approach of combining real-time aggression detection with automatic live streaming offers a proactive solution to personal safety challenges.
+
+---
+
+## Effectiveness
+
+**Does the product function as intended? Does the product execute on its idea in a way that’s effective?**
+
+Yes, the application functions as intended by:
+
+- **Continuous Monitoring:** Always-on detection of conversation sentiment without user intervention.
+- **Accurate Detection:** Utilizes advanced NLP models to assess aggression levels from 0 to 1.
+- **Immediate Response:** Triggers live streaming to emergency contacts when the safe word is detected.
+
+This seamless integration ensures that users receive timely assistance, effectively executing the core idea.
+
+---
+
+## Technical Challenge
+
+**How well does the product perform its intended functions? Does the product demonstrate technical proficiency and innovation?**
+
+Beam performs its intended functions efficiently and demonstrates significant technical proficiency:
+
+- **Integration of Multiple Technologies:**
+  - **Frontend:** React Native for cross-platform mobile development.
+  - **Backend:** T3 stack using TypeScript, tRPC, and Prisma for robust API development.
+  - **NLP Processing:** FastAPI handles complex NLP tasks and sentiment analysis.
+- **Advanced NLP Implementation:** Real-time processing of audio data to detect aggression.
+- **Innovation:** Introduces a novel solution that proactively enhances personal safety through technology.
+
+---
+
+## Presentation and Marketability
+
+**Is the implementation complex? Does the product feature different parts? Does the product use interesting concepts or technologies?**
+
+Yes, the implementation is complex and multifaceted:
+
+- **Complex Implementation:**
+  - Real-time audio capture and processing.
+  - Low-latency live streaming integration.
+- **Features Different Parts:**
+  - User interface, background services, NLP processing, and live streaming.
+- **Interesting Technologies:**
+  - Uses cutting-edge NLP models for sentiment analysis.
+  - Integrates external APIs for speech-to-text conversion and streaming.
+
+These aspects make Beam highly marketable to individuals and organizations focused on personal safety.
+
+---
+
+## Design
+
+**Does the team seem organized in their presentation/demo? Does the presentation engage the judges and have real-world marketability?**
+
+The application's design is:
+
+- **Clean and Visually Appealing:** User-friendly interface with intuitive navigation.
+- **Organized Presentation/Demo:**
+  - Clearly demonstrates key features and user flows.
+  - Engages the audience with real-world scenarios.
+- **Real-World Marketability:**
+  - Addresses a significant need for personal safety solutions.
+  - Potential for partnerships with safety organizations and law enforcement.
+
+---
+
 # This is my tRPC + Clerk + Expo Template App!
 
 Uses Discord as an out of the box OAuth provider.
-
-It uses [Turborepo](https://turborepo.org/) and contains:
-
-## Code Layout
-
-```
-.vscode
-  └─ Recommended extensions and settings
-apps
-  ├─ expo
-  └─ next.js
-      ├─ Next.js 13
-      ├─ React 18
-      └─ E2E Typesafe API Server & Client
-packages
- ├─ api
- |   └─ tRPC v10 router definition
- └─ db
-     └─ typesafe db-calls using Prisma
-```
 
 ## Quick Start
 
@@ -39,14 +98,6 @@ cp .env.example .env
 # Generate prisma client and optionally push prisma schema
 pnpm db-generate
 pnpm db-push
-```
-
-### Configure Expo app
-
-Expo doesn't use the a .env for the publishable key, so you will need to go to `apps/expo/app.config.ts` and add it there.
-
-```
-const CLERK_PUBLISHABLE_KEY = "clerk-publishable-key";
 ```
 
 ### Configure Expo `dev`-script
@@ -82,81 +133,12 @@ const CLERK_PUBLISHABLE_KEY = "clerk-publishable-key";
 
 3. Done. Assign your domain and use that instead of `localhost` for the `url` in the Expo app so that your Expo app can communicate with your backend when you are not in development.
 
-### Expo
+---
 
-1. [EAS Build](https://docs.expo.dev/build/introduction/). The build service helps to create builds without requiring a full native development setup.
+## Team
+Brian Nguyen, Abod Abbas, Dimitar Janevski, Dhyey Lalseta
 
-   ```bash
-   // Install the EAS CLI
-   $ pnpm add -g eas-cli
+---
 
-   // Log in with your Expo account
-   $ eas login
-   ```
 
-2. After the initial setup, you can create your first build. You can build for Android and iOS platforms and use different [**eas.json** build profiles](https://docs.expo.dev/build-reference/eas-json/) to create production builds or development, or test builds. Example of a development build for iOS (eas.json that I created assumes we are creating a simulator build. Drag and drop the .app from the .tar.gz into the simulator to install):
-
-   ```
-   $ eas build -p ios --profile development
-   ```
-
-   > If you don't specify the `--profile` flag, EAS uses the `production` profile by default.
-
-3. [EAS Submit](https://docs.expo.dev/submit/introduction/) can help you send the build to the stores.
-
-   ```
-   $ eas submit --platform ios --latest
-   ```
-
-   > You can also combine build and submit in a single command, using `eas build ... --auto-submit`.
-
-4. OAuth social providers with Clerk: whitelist the OAuth redirect URL for the Expo application in the Clerk Dashboard.
-
-   In `apps/expo/app.config.ts`, add a `scheme` that will be used to identify your standalone app.
-
-   ```ts
-   import { ExpoConfig, ConfigContext } from "@expo/config";
-
-   const CLERK_PUBLISHABLE_KEY = "";
-
-   const defineConfig = (_ctx: ConfigContext): ExpoConfig => ({
-      name: "expo",
-      slug: "expo",
-      scheme: "your-app-scheme",
-      // ...
-   });
-   ```
-
-   Then, in the [Clerk Dashboard](https://dashboard.clerk.dev/), go to **User & Authentication > Social Connections > Settings** and add your app's scheme and redirect URL to the **Redirect URLs** field:
-
-   ```txt
-   your-app-scheme://oauth-native-callback
-   ```
-
-   Here, `your-app-scheme` corresponds to the `scheme` defined in `app.config.ts`, and `oauth-native-callback` corresponds to the redirect URL defined when authenticating with social providers. See [SignInWithOAuth.tsx](/apps/expo/src/components/SignInWithOAuth.tsx) for reference.
-
-   > You can find more information about this in the [Expo documentation](https://docs.expo.dev/versions/latest/sdk/auth-session/#redirecting-to-your-app).
-
-   You should now be able to sign in with your social providers in the TestFlight application build.
-
-5. Let's say you spotted a small typo; you'll have to create a new build, submit it to the stores, and wait for approval before you can resolve this issue. In these cases, use EAS Update to quickly send a small bugfix to your users without going through this long process. Let's start by setting up EAS Update.
-
-   The steps below summarize the [Getting started with EAS Update](https://docs.expo.dev/eas-update/getting-started/#configure-your-project) guide.
-
-   ```bash
-   // Add the `expo-updates` library to your Expo app
-   $ cd apps/expo
-   $ pnpm expo install expo-updates
-
-   // Configure EAS Update
-   $ eas update:configure
-   ```
-
-6. Before we can send out updates to your app, you have to create a new build and submit it to the app stores. For every change that includes native APIs, you have to rebuild the app and submit the update to the app stores. See steps 2 and 3.
-
-7. Now that everything is ready for updates, let's create a new update for `production` builds. With the `--auto` flag, EAS Update uses your current git branch name and commit message for this update. See [How EAS Update works](https://docs.expo.dev/eas-update/how-eas-update-works/#publishing-an-update) for more information.
-
-   ```bash
-   $ cd apps/expo
-   $ eas update --auto
-   ```
+Thank you for considering Beam as a solution to promote peace and inclusion through technology.
