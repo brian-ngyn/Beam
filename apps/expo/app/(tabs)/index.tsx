@@ -3,13 +3,13 @@ import { StyleSheet, TouchableOpacity } from "react-native";
 import ParallaxScrollView from "../../components/ParallaxScrollView";
 import { ThemedText } from "../../components/ThemedText";
 import { ThemedView } from "../../components/ThemedView";
-import { useUser } from "@clerk/clerk-expo";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useUser } from "@clerk/clerk-expo";
+
 import { Camera, CameraType, CameraView } from "expo-camera";
 import { Video, ResizeMode } from "expo-av";
 import { supabase } from "../../utils/trpc";
 import * as FileSystem from "expo-file-system";
-import fs from "fs";
 
 export default function ExploreScreen() {
   const { user } = useUser();
