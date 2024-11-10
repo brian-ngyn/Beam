@@ -1,14 +1,15 @@
 # main.py
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
 import os
 import openai
 from transformers import pipeline
-import shutil
-
 import logging
+import requests
+import tempfile
+from moviepy.editor import VideoFileClip
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -16,70 +17,64 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-print(os.getenv("OPENAI_API_KEY")) ## is not working
-
 # Set your OpenAI API key as an environment variable for security
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Initialize the aggression detection model globally
 aggression_classifier = pipeline("text-classification", model="unitary/toxic-bert")
 
-@app.post("/trigger_detection")
-async def trigger_detection(
-    file: UploadFile = File(...),
-    safe_word: str = Form(...)
-):
+class TriggerDetectionRequest(BaseModel):
+    url_mov: str
+    safe_word: str
+
+class SummaryRequest(BaseModel):
+    url_mov: str
+
+def download_and_convert_mov(url_mov):
     """
-    Endpoint to detect aggression level and check for a safe word in the provided audio.
-    
+    Downloads the .mov file from the given URL and converts it to a .wav audio file using MoviePy.
+
     Parameters:
-    - file: Audio file uploaded by the user.
-    - safe_word: The word to check for in the transcribed text.
-    
+    - url_mov (str): URL of the .mov file.
+
     Returns:
-    - safe_word_present (bool): Indicates if the safe word was found.
-    - aggression_level (float): Aggression level between 0 and 1.
+    - str: Path to the converted .wav audio file.
     """
-    # Save the uploaded audio file to a temporary location
-    audio_filename = "uploaded_audio.wav"
     try:
-        with open(audio_filename, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        # Download the .mov file
+        response = requests.get(url_mov, stream=True)
+        response.raise_for_status()
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mov') as tmp_mov_file:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    tmp_mov_file.write(chunk)
+            mov_path = tmp_mov_file.name
+            logger.info(f".mov file downloaded to {mov_path}")
+
+        # Convert .mov to .wav using MoviePy
+        wav_path = mov_path.replace('.mov', '.wav')
+        clip = VideoFileClip(mov_path)
+        clip.audio.write_audiofile(wav_path, logger=None)
+        clip.close()
+        logger.info(f".mov file converted to .wav at {wav_path}")
+
+        # Clean up the .mov file
+        os.remove(mov_path)
+        logger.info(f"Temporary .mov file {mov_path} deleted.")
+
+        return wav_path
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save audio file: {e}")
-    finally:
-        file.file.close()
-
-    # Transcribe audio using OpenAI Whisper
-    try:
-        with open(audio_filename, "rb") as audio_file:
-            transcript = openai.Audio.transcribe("whisper-1", audio_file)
-            text = transcript["text"]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Transcription failed: {e}")
-    finally:
-        # Clean up the saved audio file
-        if os.path.exists(audio_filename):
-            os.remove(audio_filename)
-
-    # Aggression Detection
-    aggression_level = detect_aggression(text)
-
-    # Safe Word Check
-    safe_word_present = check_safe_word(text, safe_word)
-
-    return {
-        "safe_word": safe_word_present,
-        "aggression_level": aggression_level
-    }
+        logger.error(f"Error downloading or converting .mov file: {e}")
+        raise HTTPException(status_code=500, detail=f"Error processing .mov file: {e}")
 
 def detect_aggression(text: str) -> float:
     """
     Detects the aggression level in the given text using a pre-trained model.
-    
+
     Parameters:
     - text (str): Transcribed text from audio.
-    
+
     Returns:
     - aggression_level (float): Aggression level between 0 and 1.
     """
@@ -87,71 +82,98 @@ def detect_aggression(text: str) -> float:
     # Extract the score for 'toxic' label
     for result in results:
         if result['label'].lower() == 'toxic':
+            logger.info(f"Aggression level detected: {result['score']}")
             return float(result['score'])
     return 0.0  # Non-aggressive
 
 def check_safe_word(text: str, safe_word: str) -> bool:
     """
     Checks if the provided safe word is present in the text.
-    
+
     Parameters:
     - text (str): Transcribed text from audio.
     - safe_word (str): The word to search for.
-    
+
     Returns:
     - bool: True if safe word is found, False otherwise.
     """
     text_lower = text.lower()
     safe_word_lower = safe_word.lower()
-    return safe_word_lower in text_lower
+    presence = safe_word_lower in text_lower
+    logger.info(f"Safe word {'found' if presence else 'not found'} in the text.")
+    return presence
+
+@app.post("/trigger_detection")
+async def trigger_detection(request: TriggerDetectionRequest):
+    """
+    Endpoint to detect aggression level and check for a safe word in the provided audio.
+
+    Parameters:
+    - request (TriggerDetectionRequest): Contains the Supabase URL and safe word.
+
+    Returns:
+    - safe_word_present (bool): Indicates if the safe word was found.
+    - aggression_level (float): Aggression level between 0 and 1.
+    """
+    wav_path = download_and_convert_mov(request.url_mov)
+
+    try:
+        # Transcribe audio using OpenAI Whisper
+        with open(wav_path, "rb") as audio_file:
+            transcript = openai.Audio.transcribe("whisper-1", audio_file)
+            text = transcript["text"]
+            logger.info("Audio transcription successful.")
+
+        # Aggression Detection
+        aggression_level = detect_aggression(text)
+
+        # Safe Word Check
+        safe_word_present = check_safe_word(text, request.safe_word)
+
+        return {
+            "safe_word": safe_word_present,
+            "aggression_level": aggression_level
+        }
+
+    except Exception as e:
+        logger.error(f"Error processing audio file: {e}")
+        raise HTTPException(status_code=500, detail=f"Error processing audio file: {e}")
+
+    finally:
+        # Clean up the wav file
+        if os.path.exists(wav_path):
+            os.remove(wav_path)
+            logger.info(f"Temporary audio file {wav_path} deleted.")
 
 @app.post("/summary")
-async def summarize_audio(file: UploadFile = File(...)):
+async def summarize_audio(request: SummaryRequest):
     """
     Endpoint to generate a summary and label for the provided audio.
-    
+
     Parameters:
-    - file: Audio file uploaded by the user.
-    
+    - request (SummaryRequest): Contains the Supabase URL.
+
     Returns:
     - summary (str): Summary of the conversation.
     - label (str): Classification label.
     """
-    audio_filename = "uploaded_audio.wav"
-    try:
-        with open(audio_filename, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        logger.info(f"Audio file saved as {audio_filename}.")
-    except Exception as e:
-        logger.error(f"Failed to save audio file: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to save audio file: {e}")
-    finally:
-        file.file.close()
+    wav_path = download_and_convert_mov(request.url_mov)
 
-    # Transcribe audio using OpenAI Whisper
     try:
-        with open(audio_filename, "rb") as audio_file:
+        # Transcribe audio using OpenAI Whisper
+        with open(wav_path, "rb") as audio_file:
             transcript = openai.Audio.transcribe("whisper-1", audio_file)
             text = transcript.get("text", "")
             logger.info("Audio transcription successful.")
-    except Exception as e:
-        logger.error(f"Transcription failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Transcription failed: {e}")
-    finally:
-        if os.path.exists(audio_filename):
-            os.remove(audio_filename)
-            logger.info(f"Temporary audio file {audio_filename} deleted.")
 
-    if not text:
-        logger.warning("Transcription resulted in empty text.")
-        raise HTTPException(status_code=400, detail="Transcription resulted in empty text.")
+        if not text:
+            logger.warning("Transcription resulted in empty text.")
+            raise HTTPException(status_code=400, detail="Transcription resulted in empty text.")
 
-    # Generate summary and label using GPT
-    try:
-        # Generate Summary using ChatCompletion
+        # Generate summary using OpenAI ChatCompletion
         summary_messages = [
             {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": f"Provide a concise summary of the following conversation:\n{text}"}
+            {"role": "user", "content": f"Provide a concise summary of the following conversation:\n\n{text}"}
         ]
         summary_response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -162,10 +184,10 @@ async def summarize_audio(file: UploadFile = File(...)):
         summary_text = summary_response.choices[0].message['content'].strip()
         logger.info("Summary generation successful.")
 
-        # Generate Label using ChatCompletion
+        # Generate label using OpenAI ChatCompletion
         classification_messages = [
             {"role": "system", "content": "You are a classification assistant."},
-            {"role": "user", "content": f"Classify the following conversation into one of the following categories: 'Aggressive', 'Calm', 'Neutral', 'Happy', 'Sad', 'Angry'.\n\nConversation:\n{text}\n\nLabel:"}
+            {"role": "user", "content": f"Classify the following conversation into one of the following categories: 'Aggressive', 'Calm', 'Neutral', 'Happy', 'Sad', 'Angry'.\n\nConversation:\n\n{text}\n\nLabel:"}
         ]
         classification_response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -176,14 +198,20 @@ async def summarize_audio(file: UploadFile = File(...)):
         label = classification_response.choices[0].message['content'].strip()
         logger.info(f"Conversation classified as: {label}")
 
-    except Exception as e:
-        logger.error(f"Summary generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Summary generation failed: {e}")
+        return {
+            "summary": summary_text,
+            "label": label
+        }
 
-    return {
-        "summary": summary_text,
-        "label": label
-    }
+    except Exception as e:
+        logger.error(f"Error generating summary or label: {e}")
+        raise HTTPException(status_code=500, detail=f"Error generating summary or label: {e}")
+
+    finally:
+        # Clean up the wav file
+        if os.path.exists(wav_path):
+            os.remove(wav_path)
+            logger.info(f"Temporary audio file {wav_path} deleted.")
 
 # Optional: Root endpoint for basic health check
 @app.get("/")
