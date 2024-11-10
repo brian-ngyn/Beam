@@ -11,6 +11,31 @@ interface LivestreamsProps {
 }
 
 export const Livestreams = (props: LivestreamsProps) => {
+
+  return (
+    <ThemedView style={styles.container}>
+      <ThemedText lightColor="black" type="title">
+        Live Streams
+      </ThemedText>
+      <ThemedView style={styles.cardsContainer}>
+        <LivestreamCard name="John Doe" />
+        <LivestreamCard name="John Doe" />
+        <LivestreamCard name="John Doe" />
+      </ThemedView>
+      <LiveStream clerkId="user_2oeXUBGUgbeQhgXYWEASa9kQFEU" />
+      <TouchableOpacity
+        onPress={props.onPress}
+        style={styles.returnToDashboard}
+      >
+        <ThemedText lightColor="black" type="default">
+          Return to Dashboard
+        </ThemedText>
+      </TouchableOpacity>
+    </ThemedView>
+  );
+};
+
+const LiveStream = (props: { clerkId: string }) => {
   const { data } = trpc.recording.fetchMostRecentRecordingChunk.useQuery(
     { clerkIdToFetchFrom: 'user_2oeXUBGUgbeQhgXYWEASa9kQFEU' }, {
     refetchInterval: 5000,
@@ -29,44 +54,24 @@ export const Livestreams = (props: LivestreamsProps) => {
   const playingChunk = chunkPlayingIndex != null ? data?.find(r => r.chunkNumber === chunkPlayingIndex)?.supabaseUrl : null;
   playingChunk && video.current?.unloadAsync().then(() => video.current?.loadAsync({ uri: playingChunk }, { shouldPlay: true }, true))
 
-  return (
-    <ThemedView style={styles.container}>
-      <ThemedText lightColor="black" type="title">
-        Live Streams
-      </ThemedText>
-      <ThemedView style={styles.cardsContainer}>
-        <LivestreamCard name="John Doe" />
-        <LivestreamCard name="John Doe" />
-        <LivestreamCard name="John Doe" />
-      </ThemedView>
-      <View style={styles.container}>
-        {playingChunk && <Video
-          ref={video}
-          style={styles.video}
-          useNativeControls
-          resizeMode={ResizeMode.CONTAIN}
-          shouldPlay={true}
-          isLooping
-          onPlaybackStatusUpdate={async status => {
-            console.log({ status })
-            if ((status as any).didJustFinish) {
-              setChunkPlayingIndex(prev => prev + 1)
-              await video.current?.unloadAsync()
-            }
-          }}
-        />}
-      </View>
-      <TouchableOpacity
-        onPress={props.onPress}
-        style={styles.returnToDashboard}
-      >
-        <ThemedText lightColor="black" type="default">
-          Return to Dashboard
-        </ThemedText>
-      </TouchableOpacity>
-    </ThemedView>
-  );
-};
+  return <View style={styles.container}>
+    {playingChunk && <Video
+      ref={video}
+      style={styles.video}
+      useNativeControls
+      resizeMode={ResizeMode.CONTAIN}
+      shouldPlay={true}
+      isLooping
+      onPlaybackStatusUpdate={async status => {
+        console.log({ status })
+        if ((status as any).didJustFinish) {
+          setChunkPlayingIndex(prev => prev + 1)
+          await video.current?.unloadAsync()
+        }
+      }}
+    />}
+  </View>
+}
 
 const styles = StyleSheet.create({
   cardsContainer: {
