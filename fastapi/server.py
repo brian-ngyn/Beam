@@ -16,8 +16,10 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+print(os.getenv("OPENAI_API_KEY")) ## is not working
+
 # Set your OpenAI API key as an environment variable for security
-openai.api_key = API_KEY
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Initialize the aggression detection model globally
 aggression_classifier = pipeline("text-classification", model="unitary/toxic-bert")
