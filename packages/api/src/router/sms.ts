@@ -9,19 +9,17 @@ export const smsRouter = router({
   sendSms: protectedProcedure
     .input(
       z.object({
-        toPhoneNumber: z.string().min(10).max(15),
         message: z.string().min(1),
+        toPhoneNumber: z.string().min(10).max(15),
       }),
     )
     .mutation(async ({ input }) => {
-      const { toPhoneNumber, message } = input;
-
+      const { message, toPhoneNumber } = input;
       // Initialize Twilio client
       const client = twilio(
         process.env.TWILIO_ACCOUNT_SID,
         process.env.TWILIO_AUTH_TOKEN,
       );
-
       try {
         // Send SMS via Twilio
         const response = await client.messages.create({
@@ -29,11 +27,10 @@ export const smsRouter = router({
           from: process.env.TWILIO_PHONE_NUMBER,
           to: toPhoneNumber,
         });
-
         return {
-          success: true,
-          sid: response.sid,
           message: "SMS sent successfully.",
+          sid: response.sid,
+          success: true,
         };
       } catch (error) {
         console.error("Error sending SMS:", error);
