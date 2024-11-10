@@ -1,4 +1,4 @@
-import { prisma } from "@shared/db";
+import { prisma } from "../../db";
 import * as trpc from "@trpc/server";
 import * as trpcNext from "@trpc/server/adapters/next";
 import { getAuth } from "@clerk/nextjs/server";
@@ -19,6 +19,7 @@ type AuthContextProps = {
 export const createContextInner = async ({ auth }: AuthContextProps) => {
   return {
     auth,
+    userId: auth.userId,
     prisma,
   };
 };
@@ -37,6 +38,7 @@ export const createContext = async (
     ...contextInner,
     req: opts.req,
     res: opts.res,
+    userId: session.userId, // Add userId property
   };
 };
 

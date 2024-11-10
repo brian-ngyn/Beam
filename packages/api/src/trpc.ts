@@ -10,12 +10,13 @@ const t = initTRPC.context<Context>().create({
 });
 
 const isAuthed = t.middleware(({ ctx, next }) => {
-  if (!ctx.auth.userId) {
+  if (!ctx.userId) {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
   }
   return next({
     ctx: {
-      auth: ctx.auth,
+      ...ctx, // Spread the existing context
+      userId: ctx.userId,
     },
   });
 });
