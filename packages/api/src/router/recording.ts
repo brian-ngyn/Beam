@@ -82,12 +82,13 @@ export const recordingRouter = router({
       execAsync(`rm "${outputPath}"`),
     ]);
 
-    ctx.supabaseClient.storage
+    const { error } = await ctx.supabaseClient.storage
       .from("fullVideos")
-      .upload(`user_2odFmOnXwZ0tZ9FbvR2ZnswcABI/0.mov`, blob, {
+      .upload(`${ctx.userId}/0.mov`, blob, {
         cacheControl: "3600",
         upsert: true,
       });
+    console.error(error)
 
     return blob;
   }),
@@ -96,8 +97,7 @@ export const recordingRouter = router({
     .input(
       z.object({
         chunkNumber: z.number(),
-        recordingId: z.string(),
-        supabaseUrl: z.string(),
+        chunkPath: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -105,7 +105,7 @@ export const recordingRouter = router({
         data: {
           chunkNumber: input.chunkNumber,
           clerkId: ctx.userId,
-          supabaseUrl: input.supabaseUrl,
+          supabaseUrl: `https://ubsqqcchbqdvjhlyrpic.supabase.co/storage/v1/object/public/videos/${input.chunkPath}`,
         },
       });
 
