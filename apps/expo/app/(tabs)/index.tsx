@@ -13,9 +13,9 @@ import * as FileSystem from "expo-file-system";
 
 export default function ExploreScreen() {
   const { user } = useUser();
-  const [cameraViewOpen, setCameraViewOpen] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const cameraRef = useRef<CameraView | null>(null);
-  const [videoUri, setVideoUri] = useState<string[] | null>([]);
+  const [videoUri, setVideoUri] = useState<string[]>([]);
   const [facing, setFacing] = useState<CameraType>("back");
 
   const openCameraView = useCallback(async () => {
@@ -24,8 +24,7 @@ export default function ExploreScreen() {
     const { status: statusMicrophone } =
       await Camera.requestMicrophonePermissionsAsync();
     if (statusCamera === "granted" && statusMicrophone === "granted") {
-      setCameraViewOpen(true);
-      startRecording();
+      setIsRecording(true);
     }
   }, []);
 
@@ -33,39 +32,40 @@ export default function ExploreScreen() {
     setFacing((current) => (current === "back" ? "front" : "back"));
   }, []);
 
-  const startRecording = async () => {
-    try {
-      if (cameraRef.current) {
-        for (let i = 0; i < 100; i++) {
-          await cameraRef.current
-            .recordAsync({ maxDuration: 5 })
-            .then(async (uri) => {
-              if (uri) {
-                const fileContents = await FileSystem.readAsStringAsync(
-                  uri.uri,
-                  {
-                    encoding: FileSystem.EncodingType.Base64,
-                  },
-                );
-                supabase.storage.from("videos").upload(
-                  uri.uri,
-                  Uint8Array.from(atob(fileContents), (c) => c.charCodeAt(0)),
-                  {
-                    cacheControl: "3600",
-                    upsert: false,
-                  },
-                );
+  useEffect(() => {
+    const recordChunks = async () => {
+      try {
+        if (isRecording && cameraRef.current) {
+          const recording = await cameraRef.current.recordAsync({ maxDuration: 5 });
+          if (recording?.uri) {
+            const fileContents = await FileSystem.readAsStringAsync(
+              recording.uri,
+              {
+                encoding: FileSystem.EncodingType.Base64,
+              },
+            );
+            supabase.storage.from("videos").upload(
+              recording.uri,
+              Uint8Array.from(atob(fileContents), (c) => c.charCodeAt(0)),
+              {
+                cacheControl: "3600",
+                upsert: false,
+              },
+            );
 
-                setVideoUri((prev) => [...(prev ?? []), uri.uri]);
-                return uri.uri;
-              }
-            });
+            setVideoUri((prev) => [...prev, recording.uri]);
+            return recording.uri;
+          } else {
+            console.error("Couldn't get recording URI")
+          }
         }
+      } catch (err) {
+        console.error(err);
       }
-    } catch (err) {
-      console.error(err);
     }
-  };
+    recordChunks();
+    return () => (cameraRef.current && cameraRef.current.stopRecording()) ?? undefined;
+  }, [isRecording, videoUri])
 
   useEffect(() => {
     console.log(videoUri);
@@ -73,8 +73,8 @@ export default function ExploreScreen() {
 
   const stopRecording = useCallback(async () => {
     if (cameraRef.current) {
-      await cameraRef.current.stopRecording();
-      setCameraViewOpen(false);
+      cameraRef.current.stopRecording();
+      setIsRecording(false);
     }
   }, []);
 
@@ -89,7 +89,7 @@ export default function ExploreScreen() {
         </ThemedText>
       </ThemedView>
       <ThemedView
-        style={cameraViewOpen ? styles.cameraContainer : styles.cameraHidden}
+        style={isRecording ? styles.cameraContainer : styles.cameraHidden}
       >
         <CameraView
           facing={facing}
@@ -99,10 +99,10 @@ export default function ExploreScreen() {
         />
       </ThemedView>
       <ThemedView style={styles.cameraModule}>
-        {!cameraViewOpen && videoUri?.length === 0 && (
+        {!isRecording && videoUri?.length === 0 && (
           <TouchableOpacity
             onPress={async () => {
-              if (!cameraViewOpen) {
+              if (!isRecording) {
                 openCameraView();
               }
             }}
@@ -112,7 +112,7 @@ export default function ExploreScreen() {
             <ThemedView style={styles.recordingButton1} />
           </TouchableOpacity>
         )}
-        {cameraViewOpen && (
+        {isRecording && (
           <ThemedView style={styles.videoControlsContainer}>
             <TouchableOpacity
               onPress={async () => {
@@ -145,7 +145,7 @@ export default function ExploreScreen() {
               />
               <TouchableOpacity
                 onPress={() => {
-                  setVideoUri(null);
+                  setVideoUri([]);
                 }}
               >
                 <ThemedText style={styles.videoControl}>
