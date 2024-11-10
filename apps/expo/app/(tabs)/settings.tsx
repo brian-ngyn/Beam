@@ -1,4 +1,4 @@
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { RefreshControl, StyleSheet, TouchableOpacity } from "react-native";
 
 import { ThemedText } from "../../components/ThemedText";
 import { ThemedView } from "../../components/ThemedView";
@@ -9,6 +9,8 @@ import { useCallback, useState } from "react";
 import { ThemedTextInput } from "../../components/ThemedTextInput";
 import { trpc } from "../../utils/trpc";
 import { useAppContext } from "../../context/appContext";
+import SignOut from "../(auth)/signout";
+import { FlatList } from "react-native-reanimated/lib/typescript/Animated";
 
 export default function TestScreen() {
   const [emailInput, setEmailInput] = useState("");
@@ -19,7 +21,9 @@ export default function TestScreen() {
 
   const utils = trpc.useUtils();
 
-  const updatePhoneNumberMutation = trpc.user.updateUser.useMutation({ onSettled: () => utils.user.getUser.invalidate() })
+  const updatePhoneNumberMutation = trpc.user.updateUser.useMutation({
+    onSettled: () => utils.user.getUser.invalidate(),
+  });
   const sendInviteMutation = trpc.invite.sendInvite.useMutation({
     onSettled: () => {
       setEmailInput("");
@@ -41,8 +45,20 @@ export default function TestScreen() {
     }
   }, [allClerkUsers, emailInput, sendInviteMutation]);
 
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await utils.user.listCommunityMembers.invalidate();
+    await utils.invite.listReceivedInvites.invalidate();
+    setRefreshing(false);
+  }, []);
+
+  const refreshControl = (
+    <RefreshControl onRefresh={onRefresh} refreshing={refreshing} />
+  );
+
   return (
-    <ParallaxScrollView refreshable>
+    <ParallaxScrollView refreshControl={refreshControl}>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Settings</ThemedText>
       </ThemedView>
@@ -50,15 +66,15 @@ export default function TestScreen() {
         <ThemedText type="default">Your phone number</ThemedText>
         <ThemedView style={styles.addPersonInputContainer}>
           <ThemedTextInput
-            onChangeText={async (text) => { await updatePhoneNumberMutation.mutateAsync({ phoneNumber: text.trim() }) }}
-            placeholder="Phone Number"
-            value={user.data?.phoneNumber ?? ''}
-          />
-          <TouchableOpacity
-            onPress={() => {
+            onChangeText={async (text) => {
+              await updatePhoneNumberMutation.mutateAsync({
+                phoneNumber: text.trim(),
+              });
             }}
-            style={styles.addPersonButton}
-          >
+            placeholder="Phone Number"
+            value={user.data?.phoneNumber ?? ""}
+          />
+          <TouchableOpacity onPress={() => {}} style={styles.addPersonButton}>
             <ThemedText lightColor="black" type="defaultSemiBold">
               +
             </ThemedText>
@@ -121,6 +137,7 @@ export default function TestScreen() {
           );
         })}
       </ThemedView>
+      <SignOut />
     </ParallaxScrollView>
   );
 }
@@ -166,6 +183,6 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     gap: 20,
-    marginTop: 8
+    marginTop: 8,
   },
 });

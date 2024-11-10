@@ -4,9 +4,9 @@ import { Button } from "react-native";
 import { ThemedView } from "../../components/ThemedView";
 
 const SignInWithDiscord = () => {
-  const { startOAuthFlow } = useOAuth({ strategy: "oauth_discord" });
+  const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
 
-  const handleSignInWithDiscordPress = useCallback(async () => {
+  const handleSignInWithGooglePress = useCallback(async () => {
     try {
       const { createdSessionId, setActive } = await startOAuthFlow();
       if (createdSessionId) {
@@ -25,8 +25,8 @@ const SignInWithDiscord = () => {
   return (
     <ThemedView>
       <Button
-        onPress={handleSignInWithDiscordPress}
-        title="Sign in with Discord"
+        onPress={handleSignInWithGooglePress}
+        title="Sign in with Google"
       />
     </ThemedView>
   );
