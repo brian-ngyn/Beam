@@ -16,12 +16,15 @@ const defineConfig = (_ctx: ConfigContext): ExpoConfig => ({
   extra: {
     CLERK_PUBLISHABLE_KEY,
     eas: {
-      projectId: "a1530664-c4a4-41af-b9c1-291b8cff6149",
+      projectId: "46aa830d-7066-4a87-9d8c-3c15fcc8bb91",
     },
   },
   icon: "./assets/images/icon.png",
   ios: {
     bundleIdentifier: "com.example.myapp",
+    infoPlist: {
+      UIBackgroundModes: ["audio"],
+    },
     supportsTablet: true,
   },
   name: "my-expo-app",
@@ -36,6 +39,11 @@ const defineConfig = (_ctx: ConfigContext): ExpoConfig => ({
         recordAudioAndroid: true,
       },
     ],
+    [
+      "expo-av",
+      { microphonePermission: "Allow Beam to access your microphone." },
+    ],
+    "@config-plugins/react-native-webrtc",
   ],
   scheme: "myapp",
   slug: "my-expo-app",
