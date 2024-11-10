@@ -1,14 +1,25 @@
+import { trpc } from "../../../utils/trpc";
 import { ThemedText } from "../../ThemedText";
 import { ThemedView } from "../../ThemedView";
 import { Image, StyleSheet, TouchableOpacity } from "react-native";
 
 interface PersonProps {
+  clerkId: string;
   name: string;
   email: string;
   image_uri: string;
 }
 
 export const CommunityPerson = (props: PersonProps) => {
+  const deleteCommunityPersonMutation =
+    trpc.user.removeCommunityMember.useMutation({
+      onSettled: () => {
+        utils.user.listCommunityMembers.invalidate();
+        utils.invite.listReceivedInvites.invalidate();
+      },
+    });
+  const utils = trpc.useUtils();
+
   return (
     <ThemedView style={styles.container}>
       <Image
@@ -21,7 +32,9 @@ export const CommunityPerson = (props: PersonProps) => {
         <ThemedText>{props.email}</ThemedText>
         <TouchableOpacity
           onPress={() => {
-            console.log("delete");
+            deleteCommunityPersonMutation.mutate({
+              clerkIdToRemove: props.clerkId,
+            });
           }}
           style={styles.deleteButton}
         >
