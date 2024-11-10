@@ -1,5 +1,6 @@
 # main.py
-
+from dotenv import load_dotenv
+load_dotenv()
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
@@ -29,6 +30,10 @@ class TriggerDetectionRequest(BaseModel):
 
 class SummaryRequest(BaseModel):
     url_mov: str
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
 
 def download_and_convert_mov(url_mov):
     """

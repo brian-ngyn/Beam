@@ -12,14 +12,15 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  clerkId     String   @unique
-  email       String
-  name        String
-  phoneNumber String?
-  safeWord    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  clerkId         String   @unique
+  email           String
+  name            String
+  phoneNumber     String?
+  safeWord        String?
+  isLivestreaming Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model EmergencyContact {
@@ -45,6 +46,7 @@ model FullRecordings {
   supabaseUrl String
   transcript  String?
   summary     String?
+  label       String?
   createdAt   DateTime @default(now())
 }
 

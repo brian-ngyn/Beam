@@ -7,6 +7,11 @@ import { join } from "path";
 import { writeFile, readFile } from "fs/promises";
 import { exec } from "child_process";
 
+interface SummarizationResponse {
+  summary: string;
+  label: string;
+}
+
 const execAsync = promisify(exec);
 
 export const recordingRouter = router({
@@ -92,10 +97,15 @@ export const recordingRouter = router({
       });
 
     if (data) {
-      await ctx.prisma.fullRecordings.create({
+      const supabaseUrl = `https://ubsqqcchbqdvjhlyrpic.supabase.co/storage/v1/object/public/fullVideos/${userId}/${randomUuid}.mov`
+      const result = await fetch(`${process.env.FASTAPI_URL}/summary`, { method: "POST", body: JSON.stringify({ url_mov: supabaseUrl }), headers: new Headers({ "Content-Type": "application/json" }) })
+      const summarization: SummarizationResponse = await result.json()
+      const fullRecording = await ctx.prisma.fullRecordings.create({
         data: {
           clerkId: userId,
-          supabaseUrl: `https://ubsqqcchbqdvjhlyrpic.supabase.co/storage/v1/object/public/fullVideos/${userId}/${randomUuid}.mov`,
+          supabaseUrl,
+          summary: summarization.summary,
+          label: summarization.label
         },
       });
     }
