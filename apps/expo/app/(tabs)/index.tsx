@@ -84,7 +84,7 @@ export default function ExploreScreen() {
     >
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Hi, {user?.fullName}</ThemedText>
-        <ThemedText type="subtitle">
+        <ThemedText type="default">
           Feeling unsafe? Start a recording
         </ThemedText>
       </ThemedView>
