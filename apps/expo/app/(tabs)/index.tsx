@@ -10,7 +10,7 @@ import { useUser } from "@clerk/clerk-expo";
 
 import { Camera, CameraType, CameraView } from "expo-camera";
 import { Video, ResizeMode } from "expo-av";
-import { supabase } from "../../utils/trpc";
+import { supabase, trpc } from "../../utils/trpc";
 import * as FileSystem from "expo-file-system";
 import { LiveRecordingAlert } from "../../components/LiveRecordingAlert";
 
@@ -30,6 +30,10 @@ export default function ExploreScreen() {
       setIsRecording(true);
     }
   }, []);
+
+  const deleteLastRecordingMutation = trpc.recording.clearRecordingChunks.useMutation();
+  const stitchRecording = trpc.recording.createFullyStichedVideo.useMutation();
+  const createRecordingChunk = trpc.recording.createRecordingChunk.useMutation();
 
   useEffect(() => {
     const animate = Animated.loop(
@@ -62,11 +66,6 @@ export default function ExploreScreen() {
     const recordChunks = async () => {
       try {
         if (isRecording && cameraRef.current) {
-          const { data: filesToDelete } = await supabase.storage.from('videos').list(`${user!.id}/`)
-          if (filesToDelete?.length) {
-            const { error } = await supabase.storage.from("videos").remove(filesToDelete.map(file => `${user!.id}/${file.name}`))
-            if (error) { console.error({ error }) }
-          }
           const recording = await cameraRef.current.recordAsync({
             maxDuration: 5,
           });
@@ -77,15 +76,17 @@ export default function ExploreScreen() {
                 encoding: FileSystem.EncodingType.Base64,
               },
             );
+            const chunkNumber = videoUri.length
+            const chunkPath = `${user!.id}/${chunkNumber}.mov`
             supabase.storage.from("videos").upload(
-              `${user!.id}/${videoUri.length}.mov`,
+              chunkPath,
               Uint8Array.from(atob(fileContents), (c) => c.charCodeAt(0)),
               {
                 cacheControl: "3600",
                 upsert: false,
               },
             );
-
+            createRecordingChunk.mutateAsync({ chunkNumber, chunkPath })
             setVideoUri((prev) => [...prev, recording.uri]);
             return recording.uri;
           } else {
@@ -137,6 +138,7 @@ export default function ExploreScreen() {
           <TouchableOpacity
             onPress={async () => {
               if (!isRecording) {
+                await deleteLastRecordingMutation.mutateAsync();
                 openCameraView();
               }
             }}
@@ -159,6 +161,7 @@ export default function ExploreScreen() {
             <TouchableOpacity
               onPress={async () => {
                 stopRecording();
+                await stitchRecording.mutateAsync();
               }}
             >
               <ThemedText style={styles.videoControl}>
