@@ -2,6 +2,9 @@ import { ExpoConfig, ConfigContext } from "@expo/config";
 
 const CLERK_PUBLISHABLE_KEY =
   "pk_test_ZW1pbmVudC1tdXN0YW5nLTY4LmNsZXJrLmFjY291bnRzLmRldiQ";
+const SUPABASE_URL = "https://ubsqqcchbqdvjhlyrpic.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVic3FxY2NoYnFkdmpobHlycGljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzEwMTM4NDYsImV4cCI6MjA0NjU4OTg0Nn0.JRizty_he9nD_2LCVLm0j0MOcV2pt1YZK6P75XDqQYI";
 
 const defineConfig = (_ctx: ConfigContext): ExpoConfig => ({
   android: {
@@ -15,6 +18,8 @@ const defineConfig = (_ctx: ConfigContext): ExpoConfig => ({
   },
   extra: {
     CLERK_PUBLISHABLE_KEY,
+    SUPABASE_ANON_KEY,
+    SUPABASE_URL,
     eas: {
       projectId: "a1530664-c4a4-41af-b9c1-291b8cff6149",
     },
@@ -34,6 +39,12 @@ const defineConfig = (_ctx: ConfigContext): ExpoConfig => ({
         cameraPermission: "Allow Beam to access your camera",
         microphonePermission: "Allow Beam to access your microphone",
         recordAudioAndroid: true,
+      },
+    ],
+    [
+      "expo-av",
+      {
+        microphonePermission: "Allow Beam to access your microphone.",
       },
     ],
   ],
