@@ -1,4 +1,6 @@
-import { StyleSheet, TouchableOpacity } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+
+import { Animated, StyleSheet, TouchableOpacity } from "react-native";
 
 import ParallaxScrollView from "../../components/ParallaxScrollView";
 import { ThemedText } from "../../components/ThemedText";
@@ -18,7 +20,7 @@ export default function ExploreScreen() {
   const cameraRef = useRef<CameraView | null>(null);
   const [videoUri, setVideoUri] = useState<string[]>([]);
   const [facing, setFacing] = useState<CameraType>("back");
-
+  const scaleAnim = useRef(new Animated.Value(1)).current;
   const openCameraView = useCallback(async () => {
     const { status: statusCamera } =
       await Camera.requestCameraPermissionsAsync();
@@ -28,6 +30,25 @@ export default function ExploreScreen() {
       setIsRecording(true);
     }
   }, []);
+
+  useEffect(() => {
+    const animate = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          duration: 1000,
+          toValue: 1.05, // Scale up slightly
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          duration: 1000,
+          toValue: 1, // Scale back to original
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    animate.start();
+    return () => animate.stop(); // Cleanup on unmount
+  }, [scaleAnim]);
 
   const toggleCameraFacing = useCallback(() => {
     setFacing((current) => (current === "back" ? "front" : "back"));
@@ -112,8 +133,15 @@ export default function ExploreScreen() {
             }}
             style={styles.recordingButtonContainer}
           >
-            <ThemedView style={styles.recordingButton} />
-            <ThemedView style={styles.recordingButton1} />
+            <Animated.View
+              style={[
+                styles.recordingButton,
+                { transform: [{ scale: scaleAnim }] },
+              ]}
+            />
+            <ThemedView style={styles.recordingButton1}>
+              <Ionicons color={"white"} name={"videocam-outline"} size={48} />
+            </ThemedView>
           </TouchableOpacity>
         )}
         {!isRecording && <LiveRecordingAlert />}
@@ -184,14 +212,17 @@ const styles = StyleSheet.create({
   },
   recordingButton: {
     aspectRatio: "1/1",
-    backgroundColor: "#DFC8E3",
+    backgroundColor: "#E3C7E5",
     borderRadius: 999,
     width: "100%",
   },
   recordingButton1: {
+    alignItems: "center",
     aspectRatio: "1/1",
     backgroundColor: "#B68FBC",
     borderRadius: 999,
+    display: "flex",
+    justifyContent: "center",
     position: "absolute",
     width: "90%",
   },
