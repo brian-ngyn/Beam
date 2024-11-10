@@ -221,7 +221,7 @@ export default function ExploreScreen() {
                 setVideoUri([]);
               }}
             >
-              <ThemedText style={styles.videoControl}>Discard Video</ThemedText>
+              <ThemedText style={styles.videoControl}>Continue</ThemedText>
             </TouchableOpacity>
           </ThemedView>
         )}
