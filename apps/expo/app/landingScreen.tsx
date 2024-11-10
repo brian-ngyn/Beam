@@ -23,5 +23,6 @@ const styles = StyleSheet.create({
     gap: 8,
     height: "auto",
     justifyContent: "center",
+    marginTop: "60%",
   },
 });
