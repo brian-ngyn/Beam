@@ -39,6 +39,7 @@ export default function HomeScreen() {
                 description={recording.label ?? ""}
                 fullRecordingId={recording.id}
                 key={recording.id}
+                summary={recording.summary ?? ''}
                 supabaseUrl={recording.supabaseUrl}
                 title={`Event ${i + 1}`}
                 type="saved"

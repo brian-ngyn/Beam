@@ -41,6 +41,7 @@ export default function ExploreScreen() {
   const stitchRecording = trpc.recording.createFullyStichedVideo.useMutation();
   const sendSMSMutation = trpc.sms.sendSms.useMutation();
   const communityMembers = trpc.user.listCommunityMembers.useQuery();
+  const { mutateAsync: updateUser } = trpc.user.updateUser.useMutation();
   const createRecordingChunk = trpc.recording.createRecordingChunk.useMutation({
     onSettled: (res) => {
       if (res && res?.safe_word === true && communityMembers?.data?.length) {
@@ -148,6 +149,7 @@ export default function ExploreScreen() {
       cameraRef.current.stopRecording();
       setIsRecording(false);
     }
+    await updateUser({ isLiveStreaming: false })
   }, []);
 
   if (viewingLiveStreams) {

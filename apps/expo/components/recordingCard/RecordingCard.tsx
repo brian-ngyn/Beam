@@ -13,6 +13,7 @@ interface RecordingCardProps {
   type: "today" | "saved";
   supabaseUrl: string;
   fullRecordingId: number;
+  summary: string;
 }
 
 export const RecordingCard = (props: RecordingCardProps) => {
@@ -49,6 +50,7 @@ export const RecordingCard = (props: RecordingCardProps) => {
         <ThemedView style={styles.textContainer}>
           <ThemedText type="defaultSemiBold">{props.title}</ThemedText>
           <ThemedText>{props.description}</ThemedText>
+          <ThemedText>{props.summary}</ThemedText>
         </ThemedView>
         <ThemedView style={styles.playButton}>
           {props.supabaseUrl && (

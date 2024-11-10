@@ -60,9 +60,9 @@ const LiveStream = (props: { clerkId: string }) => {
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
-    if ((data?.length ?? 0) >= 3 && !isPlaying) {
+    if ((data?.length ?? 0) >= 2 && !isPlaying) {
       setIsPlaying(true);
-      setChunkPlayingIndex(Math.max(...data?.map(v => v.chunkNumber) ?? []) - 3);
+      setChunkPlayingIndex(Math.max(...data?.map(v => v.chunkNumber) ?? []) - 1);
     }
   }, [data]);
 

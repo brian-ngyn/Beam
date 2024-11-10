@@ -107,11 +107,12 @@ export const userRouter = router({
       }
     }),
   updateUser: protectedProcedure
-    .input(z.object({ phoneNumber: z.string() }))
+    .input(z.object({ phoneNumber: z.string().optional(), isLiveStreaming: z.boolean().optional() }))
     .mutation(async ({ ctx, input }) => {
       return await ctx.prisma.user.update({
         data: {
-          phoneNumber: input.phoneNumber,
+          ...(input.phoneNumber != null && { phoneNumber: input.phoneNumber }),
+          ...(input.isLiveStreaming != null && { isLivestreaming: input.isLiveStreaming })
         },
         where: { clerkId: ctx.userId },
       });
