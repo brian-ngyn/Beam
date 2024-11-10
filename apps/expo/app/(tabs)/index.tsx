@@ -15,12 +15,13 @@ import * as FileSystem from "expo-file-system";
 import { LiveRecordingAlert } from "../../components/LiveRecordingAlert";
 
 export default function ExploreScreen() {
-  const { user, isLoaded } = useUser();
+  const { isLoaded, user } = useUser();
   const [isRecording, setIsRecording] = useState(false);
   const cameraRef = useRef<CameraView | null>(null);
   const [videoUri, setVideoUri] = useState<string[]>([]);
   const [facing, setFacing] = useState<CameraType>("back");
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
   const openCameraView = useCallback(async () => {
     const { status: statusCamera } =
       await Camera.requestCameraPermissionsAsync();
@@ -34,38 +35,58 @@ export default function ExploreScreen() {
   useEffect(() => {
     const animate = Animated.loop(
       Animated.sequence([
-        Animated.timing(scaleAnim, {
-          duration: 1000,
-          toValue: 1.05, // Scale up slightly
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          duration: 1000,
-          toValue: 1, // Scale back to original
-          useNativeDriver: true,
-        }),
+        Animated.parallel([
+          Animated.timing(scaleAnim, {
+            duration: 1000,
+            toValue: 1.1,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacityAnim, {
+            duration: 1000,
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.timing(scaleAnim, {
+            duration: 1000,
+            toValue: 1,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacityAnim, {
+            duration: 1000,
+            toValue: 1,
+            useNativeDriver: true,
+          }),
+        ]),
       ]),
     );
     animate.start();
-    return () => animate.stop(); // Cleanup on unmount
-  }, [scaleAnim]);
+    return () => animate.stop();
+  }, [scaleAnim, opacityAnim]);
 
   const toggleCameraFacing = useCallback(() => {
     setFacing((current) => (current === "back" ? "front" : "back"));
   }, []);
 
   if (isLoaded && !user?.id) {
-    throw new Error('wtf');
+    throw new Error("wtf");
   }
 
   useEffect(() => {
     const recordChunks = async () => {
       try {
         if (isRecording && cameraRef.current) {
-          const { data: filesToDelete } = await supabase.storage.from('videos').list(`${user!.id}/`)
+          const { data: filesToDelete } = await supabase.storage
+            .from("videos")
+            .list(`${user!.id}/`);
           if (filesToDelete?.length) {
-            const { error } = await supabase.storage.from("videos").remove(filesToDelete.map(file => `${user!.id}/${file.name}`))
-            if (error) { console.error({ error }) }
+            const { error } = await supabase.storage
+              .from("videos")
+              .remove(filesToDelete.map((file) => `${user!.id}/${file.name}`));
+            if (error) {
+              console.error({ error });
+            }
           }
           const recording = await cameraRef.current.recordAsync({
             maxDuration: 5,
@@ -145,7 +166,7 @@ export default function ExploreScreen() {
             <Animated.View
               style={[
                 styles.recordingButton,
-                { transform: [{ scale: scaleAnim }] },
+                { opacity: opacityAnim, transform: [{ scale: scaleAnim }] },
               ]}
             />
             <ThemedView style={styles.recordingButton1}>
