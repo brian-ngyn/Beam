@@ -54,20 +54,19 @@ export const RecordingCard = (props: RecordingCardProps) => {
 
 const styles = StyleSheet.create({
   actionsContainer: {
-    alignContent: "center",
     display: "flex",
     flexDirection: "row",
+    gap: 8,
     justifyContent: "space-between",
+    width: "100%",
   },
   discardButton: {
-    alignContent: "center",
     alignItems: "center",
-    backgroundColor: "#EFB8B4",
-    color: "#567E53",
+    backgroundColor: "#D27878",
+    borderRadius: 5,
     display: "flex",
-    height: 30,
-    justifyContent: "center",
-    width: "50%",
+    flex: 1,
+    padding: 5,
   },
   input: {
     margin: 2,
@@ -88,14 +87,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   saveButton: {
-    alignContent: "center",
     alignItems: "center",
-    backgroundColor: "#B8EFB4",
-    color: "#B1453D",
+    backgroundColor: "#8ED489",
+    borderRadius: 5,
     display: "flex",
-    height: 30,
-    justifyContent: "center",
-    width: "50%",
+    flex: 1,
+    padding: 5,
   },
   textContainer: {
     display: "flex",
