@@ -38,7 +38,7 @@ export const Livestreams = (props: LivestreamsProps) => {
 const LiveStream = (props: { clerkId: string }) => {
   const { data } = trpc.recording.fetchMostRecentRecordingChunk.useQuery(
     { clerkIdToFetchFrom: 'user_2oeXUBGUgbeQhgXYWEASa9kQFEU' }, {
-    refetchInterval: 5000,
+    refetchInterval: 5100,
   })
 
   const video = useRef<Video>(null);
@@ -46,8 +46,9 @@ const LiveStream = (props: { clerkId: string }) => {
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
-    if (data?.length === 3 && !isPlaying) {
+    if ((data?.length ?? 0) >= 3 && !isPlaying) {
       setIsPlaying(true);
+      setChunkPlayingIndex(data!.length - 3);
     }
   }, [data])
 
@@ -61,6 +62,7 @@ const LiveStream = (props: { clerkId: string }) => {
       useNativeControls
       resizeMode={ResizeMode.CONTAIN}
       shouldPlay={true}
+      shouldCorrectPitch
       isLooping
       onPlaybackStatusUpdate={async status => {
         console.log({ status })
