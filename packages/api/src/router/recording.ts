@@ -82,13 +82,23 @@ export const recordingRouter = router({
       execAsync(`rm "${outputPath}"`),
     ]);
 
-    const { error } = await ctx.supabaseClient.storage
+    const randomUuid = uuidv4();
+
+    const { data } = await ctx.supabaseClient.storage
       .from("fullVideos")
-      .upload(`${ctx.userId}/0.mov`, blob, {
+      .upload(`${ctx.userId}/${randomUuid}.mov`, blob, {
         cacheControl: "3600",
         upsert: true,
       });
-    console.error(error)
+
+    if (data) {
+      await ctx.prisma.fullRecordings.create({
+        data: {
+          clerkId: userId,
+          supabaseUrl: `https://ubsqqcchbqdvjhlyrpic.supabase.co/storage/v1/object/public/fullVideos/${userId}/${randomUuid}.mov`,
+        },
+      });
+    }
 
     return blob;
   }),
@@ -109,11 +119,31 @@ export const recordingRouter = router({
         },
       });
 
-      // call python abod
-      // ee.emit("newRecordingChunk", ctx.userId, recordingChunk);
-
       return recordingChunk;
     }),
+
+  fetchMostRecentRecordingChunk: protectedProcedure.query(async ({ ctx }) => {
+    const recording = await ctx.prisma.recording.findFirst({
+      orderBy: {
+        createdAt: "desc",
+      },
+      where: {
+        clerkId: ctx.userId,
+      },
+    });
+
+    return recording;
+  }),
+
+  getAllFullRecordings: protectedProcedure.query(async ({ ctx }) => {
+    const fullRecordings = await ctx.prisma.fullRecordings.findMany({
+      where: {
+        clerkId: ctx.userId,
+      },
+    });
+
+    return fullRecordings;
+  }),
 
   getRecordingChunks: protectedProcedure
     .input(

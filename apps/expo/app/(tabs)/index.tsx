@@ -15,7 +15,7 @@ import * as FileSystem from "expo-file-system";
 import { LiveRecordingAlert } from "../../components/LiveRecordingAlert";
 
 export default function ExploreScreen() {
-  const { user, isLoaded } = useUser();
+  const { isLoaded, user } = useUser();
   const [isRecording, setIsRecording] = useState(false);
   const cameraRef = useRef<CameraView | null>(null);
   const [videoUri, setVideoUri] = useState<string[]>([]);
@@ -31,9 +31,11 @@ export default function ExploreScreen() {
     }
   }, []);
 
-  const deleteLastRecordingMutation = trpc.recording.clearRecordingChunks.useMutation();
+  const deleteLastRecordingMutation =
+    trpc.recording.clearRecordingChunks.useMutation();
   const stitchRecording = trpc.recording.createFullyStichedVideo.useMutation();
-  const createRecordingChunk = trpc.recording.createRecordingChunk.useMutation();
+  const createRecordingChunk =
+    trpc.recording.createRecordingChunk.useMutation();
 
   useEffect(() => {
     const animate = Animated.loop(
@@ -59,7 +61,7 @@ export default function ExploreScreen() {
   }, []);
 
   if (isLoaded && !user?.id) {
-    throw new Error('wtf');
+    throw new Error("wtf");
   }
 
   useEffect(() => {
@@ -76,8 +78,8 @@ export default function ExploreScreen() {
                 encoding: FileSystem.EncodingType.Base64,
               },
             );
-            const chunkNumber = videoUri.length
-            const chunkPath = `${user!.id}/${chunkNumber}.mov`
+            const chunkNumber = videoUri.length;
+            const chunkPath = `${user!.id}/${chunkNumber}.mov`;
             supabase.storage.from("videos").upload(
               chunkPath,
               Uint8Array.from(atob(fileContents), (c) => c.charCodeAt(0)),
@@ -86,7 +88,7 @@ export default function ExploreScreen() {
                 upsert: false,
               },
             );
-            createRecordingChunk.mutateAsync({ chunkNumber, chunkPath })
+            createRecordingChunk.mutateAsync({ chunkNumber, chunkPath });
             setVideoUri((prev) => [...prev, recording.uri]);
             return recording.uri;
           } else {
