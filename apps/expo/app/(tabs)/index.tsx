@@ -4,6 +4,7 @@ import ParallaxScrollView from "../../components/ParallaxScrollView";
 import { ThemedText } from "../../components/ThemedText";
 import { ThemedView } from "../../components/ThemedView";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useUser } from "@clerk/clerk-react";
 
 import { Camera, CameraType, CameraView } from "expo-camera";
 import { Video, ResizeMode } from "expo-av";
