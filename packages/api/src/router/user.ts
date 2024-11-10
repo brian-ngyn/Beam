@@ -56,6 +56,7 @@ export const userRouter = router({
     }
     return user;
   }),
+
   listCommunityMembers: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.userId;
 
@@ -105,7 +106,6 @@ export const userRouter = router({
         });
       }
     }),
-
   updateUser: protectedProcedure
     .input(z.object({ phoneNumber: z.string() }))
     .mutation(async ({ ctx, input }) => {

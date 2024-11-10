@@ -16,7 +16,7 @@ export const LiveRecordingAlert = (props: LiveRecordingAlertProps) => {
         </ThemedText>
         <ThemedView style={styles.liveRecordingSubtitle}>
           <Ionicons color={"white"} name={"cellular-outline"} size={18} />
-          <ThemedText lightColor="white">Abod and 3 others</ThemedText>
+          <ThemedText lightColor="white">Check in on your community</ThemedText>
         </ThemedView>
       </ThemedView>
       <Ionicons
