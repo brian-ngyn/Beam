@@ -56,54 +56,49 @@ const LiveStream = (props: { clerkId: string }) => {
   console.log("clerId", props.clerkId);
 
   const video = useRef<Video>(null);
-  const [chunkPlayingIndex, setChunkPlayingIndex] = useState(0);
+  const [chunkPlayingIndex, setChunkPlayingIndex] = useState<number | null>(null)
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     if ((data?.length ?? 0) >= 3 && !isPlaying) {
       setIsPlaying(true);
-      setChunkPlayingIndex(data!.length - 3);
+      setChunkPlayingIndex(Math.max(...data?.map(v => v.chunkNumber) ?? []) - 3);
     }
   }, [data]);
 
-  const playingChunk =
-    chunkPlayingIndex != null
-      ? data?.find((r) => r.chunkNumber === chunkPlayingIndex)?.supabaseUrl
-      : null;
-  playingChunk &&
-    video.current
-      ?.unloadAsync()
-      .then(() =>
-        video.current?.loadAsync(
-          { uri: playingChunk },
-          { shouldPlay: true },
-          true,
-        ),
-      );
+  useEffect(() => {
+    const playingChunk = chunkPlayingIndex != null ? data?.find(r => r.chunkNumber === chunkPlayingIndex)?.supabaseUrl : null;
+    if (!video.current) {
+      console.error("WERE FUCKEDD")
+      return;
+    } else {
+      console.error("NOT ACTAULLY FUCKED")
+    }
+    playingChunk && video.current!.loadAsync({ uri: playingChunk }, { shouldPlay: true }, true)
+  }, [chunkPlayingIndex])
 
-  return (
-    <View style={styles.container}>
-      {playingChunk && (
-        <Video
-          isLooping
-          onPlaybackStatusUpdate={async (status) => {
-            console.log({ status });
-            if ((status as any).didJustFinish) {
-              setChunkPlayingIndex((prev) => prev + 1);
-              await video.current?.unloadAsync();
-            }
-          }}
-          ref={video}
-          resizeMode={ResizeMode.CONTAIN}
-          shouldCorrectPitch
-          shouldPlay={true}
-          style={styles.video}
-          useNativeControls
-        />
-      )}
-    </View>
-  );
-};
+
+  return <View style={styles.container}>
+    {chunkPlayingIndex != null && <Video
+      ref={video}
+      style={styles.video}
+      useNativeControls
+      resizeMode={ResizeMode.CONTAIN}
+      shouldPlay={true}
+      shouldCorrectPitch
+      isLooping
+      onPlaybackStatusUpdate={async status => {
+        if ((status as any).didJustFinish) {
+          setChunkPlayingIndex(prev => (prev ?? -1) + 1)
+          if (!video.current) {
+            console.error("WERE COOKED")
+          }
+          await video.current!.unloadAsync()
+        }
+      }}
+    />}
+  </View>
+}
 
 const styles = StyleSheet.create({
   cardsContainer: {
