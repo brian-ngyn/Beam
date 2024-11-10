@@ -13,6 +13,7 @@ import { Video, ResizeMode } from "expo-av";
 import { supabase, trpc } from "../../utils/trpc";
 import * as FileSystem from "expo-file-system";
 import { LiveRecordingAlert } from "../../components/LiveRecordingAlert";
+import { Livestreams } from "../../components/livestream";
 
 export default function ExploreScreen() {
   const { isLoaded, user } = useUser();
@@ -21,6 +22,8 @@ export default function ExploreScreen() {
   const [videoUri, setVideoUri] = useState<string[]>([]);
   const [facing, setFacing] = useState<CameraType>("back");
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+  const [viewingLiveStreams, setViewingLiveStreams] = useState(false);
   const openCameraView = useCallback(async () => {
     const { status: statusCamera } =
       await Camera.requestCameraPermissionsAsync();
@@ -40,21 +43,35 @@ export default function ExploreScreen() {
   useEffect(() => {
     const animate = Animated.loop(
       Animated.sequence([
-        Animated.timing(scaleAnim, {
-          duration: 1000,
-          toValue: 1.05, // Scale up slightly
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          duration: 1000,
-          toValue: 1, // Scale back to original
-          useNativeDriver: true,
-        }),
+        Animated.parallel([
+          Animated.timing(scaleAnim, {
+            duration: 1000,
+            toValue: 1.1,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacityAnim, {
+            duration: 1000,
+            toValue: 0,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.timing(scaleAnim, {
+            duration: 1000,
+            toValue: 1,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacityAnim, {
+            duration: 1000,
+            toValue: 1,
+            useNativeDriver: true,
+          }),
+        ]),
       ]),
     );
     animate.start();
-    return () => animate.stop(); // Cleanup on unmount
-  }, [scaleAnim]);
+    return () => animate.stop();
+  }, [scaleAnim, opacityAnim, viewingLiveStreams]);
 
   const toggleCameraFacing = useCallback(() => {
     setFacing((current) => (current === "back" ? "front" : "back"));
@@ -115,6 +132,16 @@ export default function ExploreScreen() {
     }
   }, []);
 
+  if (viewingLiveStreams) {
+    return (
+      <ParallaxScrollView
+        headerBackgroundColor={{ dark: "#353636", light: "#D0D0D0" }}
+      >
+        <Livestreams onPress={() => setViewingLiveStreams(false)} />
+      </ParallaxScrollView>
+    );
+  }
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ dark: "#353636", light: "#D0D0D0" }}
@@ -149,7 +176,7 @@ export default function ExploreScreen() {
             <Animated.View
               style={[
                 styles.recordingButton,
-                { transform: [{ scale: scaleAnim }] },
+                { opacity: opacityAnim, transform: [{ scale: scaleAnim }] },
               ]}
             />
             <ThemedView style={styles.recordingButton1}>
@@ -157,7 +184,9 @@ export default function ExploreScreen() {
             </ThemedView>
           </TouchableOpacity>
         )}
-        {!isRecording && <LiveRecordingAlert />}
+        {!isRecording && (
+          <LiveRecordingAlert onPress={() => setViewingLiveStreams(true)} />
+        )}
         {isRecording && (
           <ThemedView style={styles.videoControlsContainer}>
             <TouchableOpacity
