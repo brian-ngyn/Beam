@@ -6,8 +6,13 @@ import { httpBatchLink } from "@trpc/client";
 import { transformer } from "@shared/api/transformer";
 import { useAuth } from "@clerk/clerk-expo";
 import { useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
 export const trpc = createTRPCReact<AppRouter>();
+export const supabase = createClient(
+  Constants.expoConfig?.extra?.SUPABASE_URL,
+  Constants.expoConfig?.extra?.SUPABASE_ANON_KEY,
+);
 
 const getBaseUrl = () => {
   const localhost = Constants.expoConfig?.hostUri?.split(":")[0];
