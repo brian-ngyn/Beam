@@ -27,10 +27,10 @@ export const Livestreams = (props: LivestreamsProps) => {
       <ThemedView style={styles.cardsContainer}>
         {communityMembersWithLivestreams.data?.map((member) => (
           <LivestreamCard
-            id={member.id}
+            id={member.clerkId}
             key={member.id}
             name={member.name}
-            onPress={() => setSelectedUserId(member.id)}
+            onPress={() => setSelectedUserId(member.clerkId)}
           />
         ))}
         {/* <LivestreamCard name="John Doe" />
@@ -57,6 +57,8 @@ const LiveStream = (props: { clerkId: string }) => {
       refetchInterval: 5100,
     },
   );
+
+  console.log("clerId", props.clerkId);
 
   const video = useRef<Video>(null);
   const [chunkPlayingIndex, setChunkPlayingIndex] = useState(0);
