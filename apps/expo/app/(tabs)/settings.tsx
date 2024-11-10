@@ -15,9 +15,11 @@ export default function TestScreen() {
   const { allClerkUsers } = useAppContext();
   const communityMembers = trpc.user.listCommunityMembers.useQuery();
   const incomingInvites = trpc.invite.listReceivedInvites.useQuery();
+  const user = trpc.user.getUser.useQuery();
 
   const utils = trpc.useUtils();
 
+  const updatePhoneNumberMutation = trpc.user.updateUser.useMutation({ onSettled: () => utils.user.getUser.invalidate() })
   const sendInviteMutation = trpc.invite.sendInvite.useMutation({
     onSettled: () => {
       setEmailInput("");
@@ -43,6 +45,25 @@ export default function TestScreen() {
     <ParallaxScrollView refreshable>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Settings</ThemedText>
+      </ThemedView>
+      <ThemedView style={styles.yourCommunityContainer}>
+        <ThemedText type="default">Your phone number</ThemedText>
+        <ThemedView style={styles.addPersonInputContainer}>
+          <ThemedTextInput
+            onChangeText={async (text) => { await updatePhoneNumberMutation.mutateAsync({ phoneNumber: text.trim() }) }}
+            placeholder="Phone Number"
+            value={user.data?.phoneNumber ?? ''}
+          />
+          <TouchableOpacity
+            onPress={() => {
+            }}
+            style={styles.addPersonButton}
+          >
+            <ThemedText lightColor="black" type="defaultSemiBold">
+              +
+            </ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
       </ThemedView>
       <ThemedView style={styles.yourCommunityContainer}>
         <ThemedText type="subtitle">Your Community</ThemedText>
@@ -145,5 +166,6 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     gap: 20,
+    marginTop: 8
   },
 });

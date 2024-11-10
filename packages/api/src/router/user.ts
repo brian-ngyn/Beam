@@ -27,6 +27,15 @@ export const userRouter = router({
       return existingUser;
     }),
 
+  updateUser: protectedProcedure.input(z.object({ phoneNumber: z.string() })).mutation(async ({ ctx, input }) => {
+    return await ctx.prisma.user.update({
+      where: { clerkId: ctx.userId },
+      data: {
+        phoneNumber: input.phoneNumber
+      }
+    })
+  }),
+
   getAllClerkUsers: protectedProcedure.query(async ({ ctx }) => {
     const users = await ctx.clerkClient.users.getUserList();
     return users.data.map((user) => ({
@@ -44,7 +53,7 @@ export const userRouter = router({
   getUser: protectedProcedure.query(async ({ ctx, input }) => {
     const userId = ctx.userId;
     const user = await ctx.prisma.user.findUnique({
-      where: { id: userId },
+      where: { clerkId: userId },
     });
     if (!user) {
       throw new Error("User not found.");
