@@ -13,6 +13,7 @@ import { Video, ResizeMode } from "expo-av";
 import { supabase } from "../../utils/trpc";
 import * as FileSystem from "expo-file-system";
 import { LiveRecordingAlert } from "../../components/LiveRecordingAlert";
+import { Livestreams } from "../../components/livestreams";
 
 export default function ExploreScreen() {
   const { isLoaded, user } = useUser();
@@ -22,6 +23,7 @@ export default function ExploreScreen() {
   const [facing, setFacing] = useState<CameraType>("back");
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
+  const [viewingLiveStreams, setViewingLiveStreams] = useState(false);
   const openCameraView = useCallback(async () => {
     const { status: statusCamera } =
       await Camera.requestCameraPermissionsAsync();
@@ -63,7 +65,7 @@ export default function ExploreScreen() {
     );
     animate.start();
     return () => animate.stop();
-  }, [scaleAnim, opacityAnim]);
+  }, [scaleAnim, opacityAnim, viewingLiveStreams]);
 
   const toggleCameraFacing = useCallback(() => {
     setFacing((current) => (current === "back" ? "front" : "back"));
@@ -133,6 +135,16 @@ export default function ExploreScreen() {
     }
   }, []);
 
+  if (viewingLiveStreams) {
+    return (
+      <ParallaxScrollView
+        headerBackgroundColor={{ dark: "#353636", light: "#D0D0D0" }}
+      >
+        <Livestreams onPress={() => setViewingLiveStreams(false)} />
+      </ParallaxScrollView>
+    );
+  }
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ dark: "#353636", light: "#D0D0D0" }}
@@ -174,7 +186,9 @@ export default function ExploreScreen() {
             </ThemedView>
           </TouchableOpacity>
         )}
-        {!isRecording && <LiveRecordingAlert />}
+        {!isRecording && (
+          <LiveRecordingAlert onPress={() => setViewingLiveStreams(true)} />
+        )}
         {isRecording && (
           <ThemedView style={styles.videoControlsContainer}>
             <TouchableOpacity
