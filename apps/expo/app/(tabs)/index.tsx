@@ -62,6 +62,9 @@ export default function ExploreScreen() {
     const recordChunks = async () => {
       try {
         if (isRecording && cameraRef.current) {
+          const { data: filesToDelete } = await supabase.storage.from('videos').list(`${user!.id}/`)
+          const { error } = await supabase.storage.from("videos").remove(filesToDelete?.map(file => `${user!.id}/${file.name}`) ?? [])
+          console.error({ error })
           const recording = await cameraRef.current.recordAsync({
             maxDuration: 5,
           });
