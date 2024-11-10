@@ -2,18 +2,19 @@ import { Tabs } from "expo-router";
 import React from "react";
 
 import { TabBarIcon } from "../../components/navigation/TabBarIcon";
-import { Colors } from "../../constants/Colors";
-import { useColorScheme } from "../../hooks/useColorScheme";
+import { useColorScheme } from "react-native";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+  const color = useColorScheme();
   return (
     <Tabs
       initialRouteName="index"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarActiveTintColor: "#BD8DBF",
+        tabBarStyle: {
+          backgroundColor: color ?? "light",
+        },
       }}
     >
       <Tabs.Screen
@@ -22,7 +23,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               color={color}
-              name={focused ? "home" : "home-outline"}
+              name={focused ? "bar-chart" : "bar-chart-outline"}
             />
           ),
           title: "Activity",
@@ -34,7 +35,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               color={color}
-              name={focused ? "code-slash" : "code-slash-outline"}
+              name={focused ? "home" : "home-outline"}
             />
           ),
           title: "Dashboard",
@@ -46,7 +47,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               color={color}
-              name={focused ? "cube" : "cube-outline"}
+              name={focused ? "settings" : "settings-outline"}
             />
           ),
           title: "Settings",

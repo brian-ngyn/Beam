@@ -1,74 +1,68 @@
-import { Image, StyleSheet, Platform } from "react-native";
+import { StyleSheet } from "react-native";
 
-import { HelloWave } from "../../components/HelloWave";
 import ParallaxScrollView from "../../components/ParallaxScrollView";
 import { ThemedText } from "../../components/ThemedText";
 import { ThemedView } from "../../components/ThemedView";
+import { RecordingCard } from "../../components/recordingCard/RecordingCard";
 
 export default function HomeScreen() {
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ dark: "#1D3D47", light: "#A1CEDC" }}
-      headerImage={
-        <Image
-          source={require("../../assets/images/partial-react-logo.png")}
-          style={styles.reactLogo}
-        />
-      }
+      headerBackgroundColor={{ dark: "#353636", light: "#FCFAFA" }}
     >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+      <ThemedView>
+        <ThemedText type="title">Activity</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText>{" "}
-          to see changes. Press{" "}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ android: "cmd + m", ios: "cmd + d" })}
-          </ThemedText>{" "}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this
-          starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{" "}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText>{" "}
-          to get a fresh <ThemedText type="defaultSemiBold">app</ThemedText>{" "}
-          directory. This will move the current{" "}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{" "}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
+      <ThemedView style={styles.container}>
+        <ThemedView style={styles.activityContainer}>
+          <ThemedText type="subtitle">Today</ThemedText>
+          <RecordingCard
+            description="Description of event adfgiuhsi gfduihg dfiugbiudfh giubdfiuhg guihfdgiuhsdifughiusdfhg giubfdsiugh gidfsbiugh iubgiubqwh gugbfi"
+            title="Event 1"
+            type="today"
+          />
+          <RecordingCard
+            description="Description of event"
+            title="Event 2"
+            type="today"
+          />
+          <RecordingCard
+            description="Description of event"
+            title="Event 3"
+            type="today"
+          />
+        </ThemedView>
+        <ThemedView style={styles.activityContainer}>
+          <ThemedText type="subtitle">Saved Recordings</ThemedText>
+          <RecordingCard
+            description="Description of event"
+            title="Event 1"
+            type="saved"
+          />
+          <RecordingCard
+            description="Description of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of eventDescription of event"
+            title="Event 2"
+            type="saved"
+          />
+          <RecordingCard
+            description="Description of event"
+            title="Event 3"
+            type="saved"
+          />
+        </ThemedView>
       </ThemedView>
     </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  reactLogo: {
-    bottom: 0,
-    height: 178,
-    left: 0,
-    position: "absolute",
-    width: 290,
+  activityContainer: {
+    flexDirection: "column",
+    gap: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  titleContainer: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: 8,
+  container: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 45,
   },
 });
