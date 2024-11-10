@@ -15,7 +15,7 @@ import * as FileSystem from "expo-file-system";
 import { LiveRecordingAlert } from "../../components/LiveRecordingAlert";
 
 export default function ExploreScreen() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const [isRecording, setIsRecording] = useState(false);
   const cameraRef = useRef<CameraView | null>(null);
   const [videoUri, setVideoUri] = useState<string[]>([]);
@@ -54,6 +54,10 @@ export default function ExploreScreen() {
     setFacing((current) => (current === "back" ? "front" : "back"));
   }, []);
 
+  if (isLoaded && !user?.id) {
+    throw new Error('wtf');
+  }
+
   useEffect(() => {
     const recordChunks = async () => {
       try {
@@ -69,7 +73,7 @@ export default function ExploreScreen() {
               },
             );
             supabase.storage.from("videos").upload(
-              recording.uri,
+              `${user!.id}/${videoUri.length}.mov`,
               Uint8Array.from(atob(fileContents), (c) => c.charCodeAt(0)),
               {
                 cacheControl: "3600",
