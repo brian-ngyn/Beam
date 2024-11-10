@@ -33,7 +33,6 @@ model Recording {
   id          Int      @id @default(autoincrement())
   clerkId     String
   supabaseUrl String
-  recordingId String
   chunkNumber Int
   transcript  String?
   summary     String?
