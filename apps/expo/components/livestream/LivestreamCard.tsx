@@ -1,27 +1,26 @@
 import { StyleSheet, TouchableOpacity } from "react-native";
-import { ThemedText } from "./ThemedText";
-import { ThemedView } from "./ThemedView";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { ThemedView } from "../ThemedView";
+import { ThemedText } from "../ThemedText";
 
-interface LiveRecordingAlertProps {
-  onPress: () => void;
+interface LivestreamCardProps {
+  name: string;
 }
 
-export const LiveRecordingAlert = (props: LiveRecordingAlertProps) => {
+export const LivestreamCard = (props: LivestreamCardProps) => {
   return (
-    <TouchableOpacity onPress={props.onPress} style={styles.liveRecordingCard}>
+    <TouchableOpacity style={styles.liveRecordingCard}>
       <ThemedView style={styles.liveRecordingText}>
-        <ThemedText lightColor="white" type="defaultSemiBold">
-          View Live Streams
+        <ThemedText lightColor="black" type="defaultSemiBold">
+          {props.name}
         </ThemedText>
         <ThemedView style={styles.liveRecordingSubtitle}>
-          <Ionicons color={"white"} name={"cellular-outline"} size={18} />
-          <ThemedText lightColor="white">Abod and 3 others</ThemedText>
+          <ThemedText lightColor="black">View Stream</ThemedText>
         </ThemedView>
       </ThemedView>
       <Ionicons
-        color={"white"}
-        name={"chevron-forward"}
+        color={"black"}
+        name={"cellular-outline"}
         size={24}
         style={styles.liveRecordingChevron}
       />
@@ -31,12 +30,11 @@ export const LiveRecordingAlert = (props: LiveRecordingAlertProps) => {
 
 const styles = StyleSheet.create({
   liveRecordingCard: {
-    backgroundColor: "#D27878",
+    backgroundColor: "#E3C7E5",
     borderRadius: 12,
     display: "flex",
     flexDirection: "row",
     gap: 8,
-    marginTop: "20%",
     padding: 14,
     width: "100%",
   },
