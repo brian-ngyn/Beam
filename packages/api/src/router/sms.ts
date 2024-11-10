@@ -3,33 +3,37 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
-import twilio from "twilio";
+import { MessageInstance } from "twilio/lib/rest/api/v2010/account/message";
 
 export const smsRouter = router({
   sendSms: protectedProcedure
     .input(
       z.object({
         message: z.string().min(1),
-        toPhoneNumber: z.string().min(10).max(15),
+        toPhoneNumbers: z.array(z.string().min(10).max(15)),
       }),
     )
-    .mutation(async ({ input }) => {
-      const { message, toPhoneNumber } = input;
+    .mutation(async ({ ctx, input }) => {
+      const { message, toPhoneNumbers } = input;
       // Initialize Twilio client
-      const client = twilio(
-        process.env.TWILIO_ACCOUNT_SID,
-        process.env.TWILIO_AUTH_TOKEN,
-      );
       try {
         // Send SMS via Twilio
-        const response = await client.messages.create({
-          body: message,
-          from: process.env.TWILIO_PHONE_NUMBER,
-          to: toPhoneNumber,
-        });
+        const promises: Promise<MessageInstance>[] = [];
+        if (toPhoneNumbers.length) {
+          toPhoneNumbers.forEach((to) =>
+            promises.push(
+              ctx.twilioClient.messages.create({
+                body: message,
+                from: process.env.TWILIO_PHONE_NUMBER,
+                to,
+              }),
+            ),
+          );
+        }
+        const res = await Promise.all(promises);
         return {
           message: "SMS sent successfully.",
-          sid: response.sid,
+          sid: res[0]?.sid,
           success: true,
         };
       } catch (error) {

@@ -7,6 +7,7 @@ import { RouterOutput } from "@shared/api";
 
 type AppContextReturnType = {
   allClerkUsers: RouterOutput["user"]["getAllClerkUsers"] | undefined;
+  allDbUsers: RouterOutput["user"]["getAllDbUsers"] | undefined;
 };
 
 const AppContext = createContext<AppContextReturnType>(
@@ -16,10 +17,9 @@ const AppContext = createContext<AppContextReturnType>(
 export function AppContextProvider({ children }: PropsWithChildren) {
   const { user } = useUser();
 
-  const utils = trpc.useUtils();
-  utils.invalidate();
   const addUserToDb = trpc.user.createUser.useMutation();
   const allClerkUsers = trpc.user.getAllClerkUsers.useQuery();
+  const allDbUsers = trpc.user.getAllDbUsers.useQuery();
 
   useEffect(() => {
     if (user?.id) {
@@ -33,7 +33,9 @@ export function AppContextProvider({ children }: PropsWithChildren) {
   }, [user]);
 
   return (
-    <AppContext.Provider value={{ allClerkUsers: allClerkUsers.data }}>
+    <AppContext.Provider
+      value={{ allClerkUsers: allClerkUsers.data, allDbUsers: allDbUsers.data }}
+    >
       {user?.id ? <>{children}</> : <LandingScreen />}
     </AppContext.Provider>
   );

@@ -2,14 +2,47 @@ import { ThemedView } from "../ThemedView";
 import { ThemedText } from "../ThemedText";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useRef } from "react";
+import { Video, VideoFullscreenUpdate, ResizeMode } from "expo-av";
+import { trpc } from "../../utils/trpc";
+import { Share } from "react-native";
 
 interface RecordingCardProps {
   title: string;
   description: string;
   type: "today" | "saved";
+  supabaseUrl: string;
+  fullRecordingId: number;
 }
 
 export const RecordingCard = (props: RecordingCardProps) => {
+  const videoRef = useRef<Video>(null);
+  const utils = trpc.useUtils();
+
+  const deleteRecordingMutation =
+    trpc.recording.deleteFullRecordingById.useMutation({
+      onSettled: () => {
+        utils.recording.getAllFullRecordings.invalidate();
+      },
+    });
+
+  const handlePlayFullscreen = async () => {
+    if (videoRef.current) {
+      await videoRef.current.presentFullscreenPlayer();
+      await videoRef.current.playAsync();
+    }
+  };
+
+  const onShare = async () => {
+    try {
+      await Share.share({
+        url: props.supabaseUrl,
+      });
+    } catch (error) {
+      console.error("Error sharing file:", error);
+    }
+  };
+
   return (
     <ThemedView>
       <ThemedView style={styles.mainContainer}>
@@ -18,36 +51,49 @@ export const RecordingCard = (props: RecordingCardProps) => {
           <ThemedText>{props.description}</ThemedText>
         </ThemedView>
         <ThemedView style={styles.playButton}>
-          <TouchableOpacity
-            onPress={() => {
-              console.log("play");
-            }}
-          >
-            <Ionicons color={"#555"} name={"play"} size={24} />
-          </TouchableOpacity>
+          {props.supabaseUrl && (
+            <TouchableOpacity
+              onPress={() => {
+                handlePlayFullscreen();
+              }}
+            >
+              <Ionicons color={"#555"} name={"play"} size={24} />
+            </TouchableOpacity>
+          )}
         </ThemedView>
+        {props.supabaseUrl && (
+          <Video
+            onFullscreenUpdate={(event) => {
+              if (
+                event.fullscreenUpdate ===
+                VideoFullscreenUpdate.PLAYER_WILL_DISMISS
+              ) {
+                videoRef?.current?.pauseAsync();
+              }
+            }}
+            ref={videoRef}
+            resizeMode={ResizeMode.CONTAIN}
+            source={{ uri: props.supabaseUrl }}
+            useNativeControls={false}
+          />
+        )}
       </ThemedView>
 
-      {props.type === "today" && (
-        <ThemedView style={styles.actionsContainer}>
-          <TouchableOpacity
-            onPress={() => {
-              console.log("discard");
-            }}
-            style={styles.discardButton}
-          >
-            <ThemedText lightColor="white">Delete</ThemedText>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              console.log("save");
-            }}
-            style={styles.saveButton}
-          >
-            <ThemedText lightColor="white">Save</ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
-      )}
+      <ThemedView style={styles.actionsContainer}>
+        <TouchableOpacity
+          onPress={async () => {
+            await deleteRecordingMutation.mutateAsync({
+              id: props.fullRecordingId,
+            });
+          }}
+          style={styles.discardButton}
+        >
+          <ThemedText lightColor="white">Delete</ThemedText>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onShare} style={styles.saveButton}>
+          <ThemedText lightColor="white">Save</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
     </ThemedView>
   );
 };

@@ -13,8 +13,8 @@ interface SummarizationResponse {
 }
 
 interface TriggerDetectionReq {
-  url_mov: string
-  safe_word: string
+  url_mov: string;
+  safe_word: string;
 }
 
 interface TriggerDetectionResponse {
@@ -107,20 +107,25 @@ export const recordingRouter = router({
       });
 
     if (data) {
-      const supabaseUrl = `https://ubsqqcchbqdvjhlyrpic.supabase.co/storage/v1/object/public/fullVideos/${userId}/${randomUuid}.mov`
-      const result = await fetch(`${process.env.FASTAPI_URL}/summary`, { method: "POST", body: JSON.stringify({ url_mov: supabaseUrl }), headers: new Headers({ "Content-Type": "application/json" }) })
-      const summarization: SummarizationResponse = await result.json()
+      const supabaseUrl = `https://ubsqqcchbqdvjhlyrpic.supabase.co/storage/v1/object/public/fullVideos/${userId}/${randomUuid}.mov`;
+      const result = await fetch(`${process.env.FASTAPI_URL}/summary`, {
+        body: JSON.stringify({ url_mov: supabaseUrl }),
+        headers: new Headers({ "Content-Type": "application/json" }),
+        method: "POST",
+      });
+      const summarization: SummarizationResponse = await result.json();
       const fullRecording = await ctx.prisma.fullRecordings.create({
         data: {
           clerkId: userId,
-          supabaseUrl,
+          label: summarization.label,
           summary: summarization.summary,
-          label: summarization.label
+          supabaseUrl,
         },
       });
+      return fullRecording.id;
     }
 
-    return blob;
+    return "ok";
   }),
 
   createRecordingChunk: protectedProcedure
@@ -132,7 +137,7 @@ export const recordingRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const supabaseUrl = `https://ubsqqcchbqdvjhlyrpic.supabase.co/storage/v1/object/public/videos/${input.chunkPath}`
+        const supabaseUrl = `https://ubsqqcchbqdvjhlyrpic.supabase.co/storage/v1/object/public/videos/${input.chunkPath}`;
         const recordingChunk = await ctx.prisma.recording.create({
           data: {
             chunkNumber: input.chunkNumber,
@@ -141,27 +146,52 @@ export const recordingRouter = router({
           },
         });
 
-        const requestTriggerDetection = async (request: TriggerDetectionReq): Promise<TriggerDetectionResponse> => {
+        const requestTriggerDetection = async (
+          request: TriggerDetectionReq,
+        ): Promise<TriggerDetectionResponse> => {
           try {
-            const result = await fetch(`${process.env.FASTAPI_URL}/trigger_detection`, { method: "POST", body: JSON.stringify(request), headers: new Headers({ "Content-Type": "application/json" }) })
-            const data = await result.json() as TriggerDetectionResponse;
+            const result = await fetch(
+              `${process.env.FASTAPI_URL}/trigger_detection`,
+              {
+                body: JSON.stringify(request),
+                headers: new Headers({ "Content-Type": "application/json" }),
+                method: "POST",
+              },
+            );
+            const data = (await result.json()) as TriggerDetectionResponse;
             if (data.safe_word || data.aggression_level >= 0.7) {
-              console.log("danger detected")
-              await ctx.prisma.user.update({ where: { clerkId: ctx.userId }, data: { isLivestreaming: true } })
+              console.log("danger detected");
+              await ctx.prisma.user.update({
+                data: { isLivestreaming: true },
+                where: { clerkId: ctx.userId },
+              });
             }
             return data;
           } catch (err) {
             console.error(err);
-            return { aggression_level: 0, safe_word: false }
+            return { aggression_level: 0, safe_word: false };
           }
-        }
+        };
 
-        requestTriggerDetection({ safe_word: "beam", url_mov: supabaseUrl })
+        const triggerDetectionResults = await requestTriggerDetection({
+          safe_word: "beam",
+          url_mov: supabaseUrl,
+        });
 
-        return recordingChunk;
+        return triggerDetectionResults;
       } catch (err) {
         console.error(err);
       }
+    }),
+
+  deleteFullRecordingById: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.fullRecordings.delete({
+        where: {
+          id: input.id,
+        },
+      });
     }),
 
   fetchMostRecentRecordingChunk: protectedProcedure
@@ -205,4 +235,3 @@ export const recordingRouter = router({
       return recordings;
     }),
 });
-

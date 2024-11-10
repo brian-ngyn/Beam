@@ -14,9 +14,11 @@ import { supabase, trpc } from "../../utils/trpc";
 import * as FileSystem from "expo-file-system";
 import { LiveRecordingAlert } from "../../components/LiveRecordingAlert";
 import { Livestreams } from "../../components/livestream";
+import { useAppContext } from "../../context/appContext";
 
 export default function ExploreScreen() {
   const { isLoaded, user } = useUser();
+  const { allDbUsers } = useAppContext();
   const [isRecording, setIsRecording] = useState(false);
   const cameraRef = useRef<CameraView | null>(null);
   const [videoUri, setVideoUri] = useState<string[]>([]);
@@ -37,8 +39,28 @@ export default function ExploreScreen() {
   const deleteLastRecordingMutation =
     trpc.recording.clearRecordingChunks.useMutation();
   const stitchRecording = trpc.recording.createFullyStichedVideo.useMutation();
-  const createRecordingChunk =
-    trpc.recording.createRecordingChunk.useMutation();
+  const sendSMSMutation = trpc.sms.sendSms.useMutation();
+  const communityMembers = trpc.user.listCommunityMembers.useQuery();
+  const createRecordingChunk = trpc.recording.createRecordingChunk.useMutation({
+    onSettled: (res) => {
+      if (res && res?.safe_word === true && communityMembers?.data?.length) {
+        // get the clerk ids from the communityMembers and get the phone number from allClerkUsers
+        const communityMemberClerkIds = communityMembers.data.map(
+          (member) => member.clerkId,
+        );
+        const phoneNumbers = allDbUsers
+          ?.filter((user) => communityMemberClerkIds.includes(user.id))
+          .map((user) => user.phoneNumber)
+          .filter((phoneNumber) => phoneNumber !== null);
+        if (phoneNumbers?.length) {
+          sendSMSMutation.mutate({
+            message: `This is from Beam. ${user?.fullName} has used their safe word. Please check in on them.`,
+            toPhoneNumbers: phoneNumbers,
+          });
+        }
+      }
+    },
+  });
 
   useEffect(() => {
     const animate = Animated.loop(
@@ -121,7 +143,6 @@ export default function ExploreScreen() {
       (cameraRef.current && cameraRef.current.stopRecording()) ?? undefined;
   }, [isRecording, videoUri]);
 
-
   const stopRecording = useCallback(async () => {
     if (cameraRef.current) {
       cameraRef.current.stopRecording();
@@ -181,6 +202,29 @@ export default function ExploreScreen() {
             </ThemedView>
           </TouchableOpacity>
         )}
+        {!isRecording && videoUri[0] && videoUri.length > 0 && (
+          <ThemedView key={videoUri[0]} style={styles.videoPreviewContainer}>
+            <ThemedText style={styles.videoPreviewText}>
+              Video Preview
+            </ThemedText>
+            <Video
+              isLooping
+              resizeMode={ResizeMode.CONTAIN}
+              source={{
+                uri: videoUri[0],
+              }}
+              style={styles.videoPreview}
+              useNativeControls
+            />
+            <TouchableOpacity
+              onPress={() => {
+                setVideoUri([]);
+              }}
+            >
+              <ThemedText style={styles.videoControl}>Discard Video</ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
+        )}
         {!isRecording && (
           <LiveRecordingAlert onPress={() => setViewingLiveStreams(true)} />
         )}
@@ -202,32 +246,6 @@ export default function ExploreScreen() {
           </ThemedView>
         )}
       </ThemedView>
-      {videoUri &&
-        videoUri.length > 0 &&
-        videoUri?.map((uri) => {
-          return (
-            <ThemedView key={uri} style={styles.videoPreviewContainer}>
-              <Video
-                isLooping
-                resizeMode={ResizeMode.CONTAIN}
-                source={{
-                  uri,
-                }}
-                style={styles.videoPreview}
-                useNativeControls
-              />
-              <TouchableOpacity
-                onPress={() => {
-                  setVideoUri([]);
-                }}
-              >
-                <ThemedText style={styles.videoControl}>
-                  Discard Video
-                </ThemedText>
-              </TouchableOpacity>
-            </ThemedView>
-          );
-        })}
     </ParallaxScrollView>
   );
 }
@@ -298,8 +316,11 @@ const styles = StyleSheet.create({
     height: 500,
   },
   videoPreviewContainer: {
-    backgroundColor: "blue",
     flexDirection: "column",
+    rowGap: 10,
     width: "100%",
+  },
+  videoPreviewText: {
+    textAlign: "right",
   },
 });

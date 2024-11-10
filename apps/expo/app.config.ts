@@ -33,7 +33,7 @@ const defineConfig = (_ctx: ConfigContext): ExpoConfig => ({
   orientation: "portrait",
   plugins: [
     ["expo-router"],
-    ['expo-video'],
+    ["expo-video"],
     [
       "expo-camera",
       {
