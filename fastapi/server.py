@@ -15,6 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+API_KEY = "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"
 
 # Set your OpenAI API key as an environment variable for security
 openai.api_key = API_KEY
