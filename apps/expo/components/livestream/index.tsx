@@ -13,12 +13,7 @@ interface LivestreamsProps {
 export const Livestreams = (props: LivestreamsProps) => {
   const communityMembersWithLivestreams =
     trpc.liveStream.getCommunityMembersWithLiveStream.useQuery();
-  console.log(
-    "communityMembersWithLivestreams",
-    communityMembersWithLivestreams,
-  );
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  console.log("selectedUserId", selectedUserId);
   return (
     <ThemedView style={styles.container}>
       <ThemedText lightColor="black" type="title">
