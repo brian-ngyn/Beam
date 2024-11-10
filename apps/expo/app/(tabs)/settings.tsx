@@ -5,8 +5,12 @@ import { ThemedView } from "../../components/ThemedView";
 import ParallaxScrollView from "../../components/ParallaxScrollView";
 import { CommunityPerson } from "../../components/Settings/YourCommunity/CommunityPerson";
 import { InvitesPerson } from "../../components/Settings/Invites/InvitesPerson";
+import { useState } from "react";
+import { ThemedTextInput } from "../../components/ThemedTextInput";
 
 export default function TestScreen() {
+  const [emailInput, setEmailInput] = useState("");
+
   return (
     <ParallaxScrollView>
       <ThemedView style={styles.titleContainer}>
@@ -24,13 +28,23 @@ export default function TestScreen() {
           image_uri="https://img.freepik.com/free-photo/happy-man-student-with-afro-hairdo-shows-white-teeth-being-good-mood-after-classes_273609-16608.jpg"
           name="Jane Doe"
         />
+      </ThemedView>
+      <ThemedText type="default">Add Person</ThemedText>
+      <ThemedView style={styles.addPersonInputContainer}>
+        <ThemedTextInput
+          onChangeText={setEmailInput}
+          placeholder="Email"
+          value={emailInput}
+        />
         <TouchableOpacity
           onPress={() => {
             console.log("add person");
           }}
           style={styles.addPersonButton}
         >
-          <ThemedText>+ Add Person</ThemedText>
+          <ThemedText lightColor="black" type="defaultSemiBold">
+            +
+          </ThemedText>
         </TouchableOpacity>
       </ThemedView>
       <ThemedView style={styles.invitesContainer}>
@@ -51,9 +65,19 @@ export default function TestScreen() {
 
 const styles = StyleSheet.create({
   addPersonButton: {
+    alignContent: "center",
     alignItems: "center",
     display: "flex",
-    width: "100%",
+    height: 20,
+    justifyContent: "center",
+    width: 20,
+  },
+  addPersonInputContainer: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 8,
+    height: 20,
+    justifyContent: "space-between",
   },
   invitesContainer: {
     display: "flex",
