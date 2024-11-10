@@ -1,7 +1,7 @@
 import { prisma } from "../../db";
 import * as trpc from "@trpc/server";
 import * as trpcNext from "@trpc/server/adapters/next";
-import { getAuth } from "@clerk/nextjs/server";
+import { createClerkClient, getAuth } from "@clerk/nextjs/server";
 import type { AuthObject } from "@clerk/backend";
 
 /**
@@ -11,6 +11,10 @@ type AuthContextProps = {
   auth: AuthObject;
 };
 
+const clerkClient = createClerkClient({
+  secretKey: process.env.CLERK_SECRET_KEY,
+});
+
 /** Use this helper for:
  *  - testing, where we dont have to Mock Next.js' req/res
  *  - trpc's `createSSGHelpers` where we don't have req/res
@@ -19,8 +23,9 @@ type AuthContextProps = {
 export const createContextInner = async ({ auth }: AuthContextProps) => {
   return {
     auth,
-    userId: auth.userId,
+    clerkClient,
     prisma,
+    userId: auth.userId,
   };
 };
 
