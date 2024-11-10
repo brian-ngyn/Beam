@@ -216,6 +216,7 @@ export const recordingRouter = router({
         where: {
           clerkId: ctx.userId,
         },
+        orderBy: { createdAt: 'desc' }
       });
 
       return fullRecordings;
