@@ -4,10 +4,10 @@ import { StyleSheet, TouchableOpacity } from "react-native";
 import ParallaxScrollView from "../../components/ParallaxScrollView";
 import { ThemedText } from "../../components/ThemedText";
 import { ThemedView } from "../../components/ThemedView";
-import { useUser } from "@clerk/clerk-expo";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Colors } from "../../constants/Colors";
 import { CameraView, CameraType, Camera } from "expo-camera";
+import { useUser } from "@clerk/clerk-react";
 
 export default function ExploreScreen() {
   const { user } = useUser();
@@ -16,7 +16,6 @@ export default function ExploreScreen() {
   const [recordingURI, setRecordingURI] = useState<string | undefined>(
     undefined,
   );
-
   const [facing, setFacing] = useState<CameraType>("back");
 
   const toggleCamera = useCallback(async () => {
