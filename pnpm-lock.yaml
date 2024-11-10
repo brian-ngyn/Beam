@@ -193,7 +193,10 @@ importers:
 
   packages/api:
     specifiers:
+      '@ffmpeg/ffmpeg': ^0.12.10
+      '@ffmpeg/util': ^0.12.1
       '@shared/db': '*'
+      '@supabase/supabase-js': ^2.46.1
       '@trpc/client': 11.0.0-rc.485
       '@trpc/server': 11.0.0-rc.485
       cors: ^2.8.5
@@ -201,14 +204,19 @@ importers:
       express: ^4.19.2
       superjson: ^2.2.1
       typescript: 5.3.3
+      uuid: ^11.0.2
       zod: ^3.23.8
     dependencies:
+      '@ffmpeg/ffmpeg': 0.12.10
+      '@ffmpeg/util': 0.12.1
       '@shared/db': link:../db
+      '@supabase/supabase-js': 2.46.1
       '@trpc/client': 11.0.0-rc.485_@trpc+server@11.0.0-rc.485
       '@trpc/server': 11.0.0-rc.485
       cors: 2.8.5
       express: 4.21.1
       superjson: 2.2.1
+      uuid: 11.0.2
       zod: 3.23.8
     devDependencies:
       eslint: 8.57.0
@@ -2639,6 +2647,23 @@ packages:
       chalk: 4.1.2
       find-up: 5.0.0
       js-yaml: 4.1.0
+    dev: false
+
+  /@ffmpeg/ffmpeg/0.12.10:
+    resolution: {integrity: sha512-lVtk8PW8e+NUzGZhPTWj2P1J4/NyuCrbDD3O9IGpSeLYtUZKBqZO8CNj1WYGghep/MXoM8e1qVY1GztTkf8YYQ==}
+    engines: {node: '>=18.x'}
+    dependencies:
+      '@ffmpeg/types': 0.12.2
+    dev: false
+
+  /@ffmpeg/types/0.12.2:
+    resolution: {integrity: sha512-NJtxwPoLb60/z1Klv0ueshguWQ/7mNm106qdHkB4HL49LXszjhjCCiL+ldHJGQ9ai2Igx0s4F24ghigy//ERdA==}
+    engines: {node: '>=16.x'}
+    dev: false
+
+  /@ffmpeg/util/0.12.1:
+    resolution: {integrity: sha512-10jjfAKWaDyb8+nAkijcsi9wgz/y26LOc1NKJradNMyCIl6usQcBbhkjX5qhALrSBcOy6TOeksunTYa+a03qNQ==}
+    engines: {node: '>=18.x'}
     dev: false
 
   /@floating-ui/core/1.6.8:
@@ -11592,6 +11617,11 @@ packages:
   /utils-merge/1.0.1:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
+    dev: false
+
+  /uuid/11.0.2:
+    resolution: {integrity: sha512-14FfcOJmqdjbBPdDjFQyk/SdT4NySW4eM0zcG+HqbHP5jzuH56xO3J1DGhgs/cEMCfwYi3HQI1gnTO62iaG+tQ==}
+    hasBin: true
     dev: false
 
   /uuid/7.0.3:

@@ -33,8 +33,16 @@ model Recording {
   id          Int      @id @default(autoincrement())
   clerkId     String
   supabaseUrl String
-  recordingId String
   chunkNumber Int
+  transcript  String?
+  summary     String?
+  createdAt   DateTime @default(now())
+}
+
+model FullRecordings {
+  id          Int      @id @default(autoincrement())
+  clerkId     String
+  supabaseUrl String
   transcript  String?
   summary     String?
   createdAt   DateTime @default(now())
