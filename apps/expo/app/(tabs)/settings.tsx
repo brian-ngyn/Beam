@@ -3,7 +3,8 @@ import { StyleSheet, TouchableOpacity } from "react-native";
 import { ThemedText } from "../../components/ThemedText";
 import { ThemedView } from "../../components/ThemedView";
 import ParallaxScrollView from "../../components/ParallaxScrollView";
-import { Person } from "../../components/YourCommunity/Person";
+import { CommunityPerson } from "../../components/Settings/YourCommunity/CommunityPerson";
+import { InvitesPerson } from "../../components/Settings/Invites/InvitesPerson";
 
 export default function TestScreen() {
   return (
@@ -13,12 +14,12 @@ export default function TestScreen() {
       </ThemedView>
       <ThemedView style={styles.yourCommunityContainer}>
         <ThemedText type="subtitle">Your Community</ThemedText>
-        <Person
+        <CommunityPerson
           email="john.doe@gmail.com"
           image_uri="https://img.freepik.com/free-photo/happy-man-student-with-afro-hairdo-shows-white-teeth-being-good-mood-after-classes_273609-16608.jpg"
           name="John Doe"
         />
-        <Person
+        <CommunityPerson
           email="jane.doe@gmail.com"
           image_uri="https://img.freepik.com/free-photo/happy-man-student-with-afro-hairdo-shows-white-teeth-being-good-mood-after-classes_273609-16608.jpg"
           name="Jane Doe"
@@ -38,6 +39,11 @@ export default function TestScreen() {
           By accepting these invites you will join their community and receive
           live stream notifications.
         </ThemedText>
+        <InvitesPerson
+          email="jane.doe@gmail.com"
+          image_uri="https://img.freepik.com/free-photo/happy-man-student-with-afro-hairdo-shows-white-teeth-being-good-mood-after-classes_273609-16608.jpg"
+          name="Jane Doe"
+        />
       </ThemedView>
     </ParallaxScrollView>
   );

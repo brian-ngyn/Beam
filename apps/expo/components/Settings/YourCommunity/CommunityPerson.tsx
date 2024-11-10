@@ -1,5 +1,5 @@
-import { ThemedText } from "../ThemedText";
-import { ThemedView } from "../ThemedView";
+import { ThemedText } from "../../ThemedText";
+import { ThemedView } from "../../ThemedView";
 import { Image, StyleSheet, TouchableOpacity } from "react-native";
 
 interface PersonProps {
@@ -8,7 +8,7 @@ interface PersonProps {
   image_uri: string;
 }
 
-export const Person = (props: PersonProps) => {
+export const CommunityPerson = (props: PersonProps) => {
   return (
     <ThemedView style={styles.container}>
       <Image
