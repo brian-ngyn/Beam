@@ -2,7 +2,12 @@ import { createTRPCReact } from "@trpc/react-query";
 import type { AppRouter } from "@shared/api";
 import Constants from "expo-constants";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink } from "@trpc/client";
+import {
+  httpBatchLink,
+  loggerLink,
+  splitLink,
+  unstable_httpSubscriptionLink,
+} from "@trpc/client";
 import { transformer } from "@shared/api/transformer";
 import { useAuth } from "@clerk/clerk-expo";
 import { useState } from "react";
@@ -29,15 +34,33 @@ export const TRPCProvider: React.FC<{
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [
-        httpBatchLink({
-          async headers() {
-            const authToken = await getToken();
-            return {
-              Authorization: authToken ?? undefined,
-            };
-          },
-          transformer,
-          url: `${getBaseUrl()}/api/trpc`,
+        loggerLink({
+          enabled: (opts) =>
+            process.env.NODE_ENV === "development" ||
+            (opts.direction === "down" && opts.result instanceof Error),
+        }),
+        splitLink({
+          condition: (op) => op.type === "subscription",
+          false: httpBatchLink({
+            async headers() {
+              const token = await getToken();
+              return {
+                authorization: `Bearer ${token}`,
+              };
+            },
+            /**
+             * @see https://trpc.io/docs/v11/data-transformers
+             */
+            transformer: transformer,
+            url: `${getBaseUrl()}/api/trpc`,
+          }),
+          true: unstable_httpSubscriptionLink({
+            /**
+             * @see https://trpc.io/docs/v11/data-transformers
+             */
+            transformer: transformer,
+            url: `${getBaseUrl()}/api/trpc`,
+          }),
         }),
       ],
     }),
