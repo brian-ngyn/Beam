@@ -1,3 +1,5 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
+
 import { Animated, StyleSheet, TouchableOpacity } from "react-native";
 
 import ParallaxScrollView from "../../components/ParallaxScrollView";
@@ -137,7 +139,9 @@ export default function ExploreScreen() {
                 { transform: [{ scale: scaleAnim }] },
               ]}
             />
-            <ThemedView style={styles.recordingButton1} />
+            <ThemedView style={styles.recordingButton1}>
+              <Ionicons color={"white"} name={"videocam-outline"} size={48} />
+            </ThemedView>
           </TouchableOpacity>
         )}
         {!isRecording && <LiveRecordingAlert />}
@@ -213,9 +217,12 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   recordingButton1: {
+    alignItems: "center",
     aspectRatio: "1/1",
     backgroundColor: "#B68FBC",
     borderRadius: 999,
+    display: "flex",
+    justifyContent: "center",
     position: "absolute",
     width: "90%",
   },
