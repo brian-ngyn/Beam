@@ -5,29 +5,61 @@ import { ThemedView } from "../../components/ThemedView";
 import ParallaxScrollView from "../../components/ParallaxScrollView";
 import { CommunityPerson } from "../../components/Settings/YourCommunity/CommunityPerson";
 import { InvitesPerson } from "../../components/Settings/Invites/InvitesPerson";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { ThemedTextInput } from "../../components/ThemedTextInput";
+import { trpc } from "../../utils/trpc";
+import { useAppContext } from "../../context/appContext";
 
 export default function TestScreen() {
   const [emailInput, setEmailInput] = useState("");
+  const { allClerkUsers } = useAppContext();
+  const communityMembers = trpc.user.listCommunityMembers.useQuery();
+  const incomingInvites = trpc.invite.listReceivedInvites.useQuery();
+
+  const utils = trpc.useUtils();
+
+  const sendInviteMutation = trpc.invite.sendInvite.useMutation({
+    onSettled: () => {
+      setEmailInput("");
+      utils.user.listCommunityMembers.invalidate();
+      utils.invite.listReceivedInvites.invalidate();
+    },
+  });
+
+  const sendInvite = useCallback(() => {
+    const clerkIdToSendInviteTo = allClerkUsers?.find(
+      (user) => user.email === emailInput,
+    )?.id;
+    if (clerkIdToSendInviteTo && emailInput !== "") {
+      sendInviteMutation.mutate({
+        idToSendInviteTo: allClerkUsers?.find(
+          (user) => user.email === emailInput,
+        )?.id as string,
+      });
+    }
+  }, [allClerkUsers, emailInput, sendInviteMutation]);
 
   return (
-    <ParallaxScrollView>
+    <ParallaxScrollView refreshable>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Settings</ThemedText>
       </ThemedView>
       <ThemedView style={styles.yourCommunityContainer}>
         <ThemedText type="subtitle">Your Community</ThemedText>
-        <CommunityPerson
-          email="john.doe@gmail.com"
-          image_uri="https://img.freepik.com/free-photo/happy-man-student-with-afro-hairdo-shows-white-teeth-being-good-mood-after-classes_273609-16608.jpg"
-          name="John Doe"
-        />
-        <CommunityPerson
-          email="jane.doe@gmail.com"
-          image_uri="https://img.freepik.com/free-photo/happy-man-student-with-afro-hairdo-shows-white-teeth-being-good-mood-after-classes_273609-16608.jpg"
-          name="Jane Doe"
-        />
+        {communityMembers.data?.map((member) => {
+          const clerkUser = allClerkUsers?.find(
+            (user) => user.id === member.clerkId,
+          );
+          return (
+            <CommunityPerson
+              clerkId={member.clerkId}
+              email={clerkUser?.email ?? ""}
+              image_uri="https://img.freepik.com/free-photo/happy-man-student-with-afro-hairdo-shows-white-teeth-being-good-mood-after-classes_273609-16608.jpg"
+              key={member.id}
+              name={clerkUser?.firstName + " " + (clerkUser?.lastName ?? "")}
+            />
+          );
+        })}
       </ThemedView>
       <ThemedText type="default">Add Person</ThemedText>
       <ThemedView style={styles.addPersonInputContainer}>
@@ -38,7 +70,7 @@ export default function TestScreen() {
         />
         <TouchableOpacity
           onPress={() => {
-            console.log("add person");
+            sendInvite();
           }}
           style={styles.addPersonButton}
         >
@@ -53,11 +85,20 @@ export default function TestScreen() {
           By accepting these invites you will join their community and receive
           live stream notifications.
         </ThemedText>
-        <InvitesPerson
-          email="jane.doe@gmail.com"
-          image_uri="https://img.freepik.com/free-photo/happy-man-student-with-afro-hairdo-shows-white-teeth-being-good-mood-after-classes_273609-16608.jpg"
-          name="Jane Doe"
-        />
+        {incomingInvites.data?.map((invite) => {
+          const clerkUser = allClerkUsers?.find(
+            (user) => user.id === invite.fromClerkId,
+          );
+          return (
+            <InvitesPerson
+              email={clerkUser?.email ?? ""}
+              fromClerkId={invite.fromClerkId}
+              image_uri="https://img.freepik.com/free-photo/happy-man-student-with-afro-hairdo-shows-white-teeth-being-good-mood-after-classes_273609-16608.jpg"
+              key={invite.id}
+              name={clerkUser?.firstName + " " + (clerkUser?.lastName ?? "")}
+            />
+          );
+        })}
       </ThemedView>
     </ParallaxScrollView>
   );
